@@ -1,0 +1,1204 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Final Hire Workflow Improvement Dashboard</title>
+<script src="https://cdn.plot.ly/plotly-latest.min.js"></script>
+<style>
+body { font-family: Arial, sans-serif; margin: 20px; background-color: #000000; }
+h2, h3 { margin-bottom: 10px; color: #ffffff; }
+.nav-buttons button { padding: 8px 16px; margin-right: 10px; border:1px solid #888; background:#f2f2f2; cursor:pointer; }
+.nav-buttons button.active { background:#d9e4ff; font-weight:bold; }
+.page { display:none; padding: 10px; border-radius: 8px; }
+.page.active { display:block; }
+.top-image { width:100%; max-width:1500px; border:1px solid #ccc; padding:5px; margin-top:10px; background-color: #ffffff; }
+.big-number { font-size:32px; font-weight:bold; margin:20px 0; color: #ffffff; }
+#chart2, #chart3, #chart4, #chart5 { background-color: #000000; padding: 10px; border-radius: 8px; }
+#table6 { border-collapse: collapse; width: 100%; max-width: 900px; margin-top: 15px; background-color: #ffffff; }
+#table6 th, #table6 td { border: 1px solid #444; padding: 6px 8px; text-align: left; }
+#table6 th { background-color: #f0f0f0; }
+
+#table7 { border-collapse: collapse; width: 100%; max-width: 900px; margin-top: 15px; background-color: #ffffff; box-shadow: 0 0 14px rgba(255,255,255,0.35); border-radius: 8px; }
+#table7 th, #table7 td { border: 1px solid #444; padding: 6px 8px; text-align: left; }
+#table7 th { background-color: #e0f2fe; }
+
+#table8 { border-collapse: collapse; width: 100%; max-width: 900px; margin-top: 15px; background-color: #ffffff; }
+#table8 th, #table8 td { border: 1px solid #444; padding: 6px 8px; text-align: left; }
+#table8 th { background-color: #fee2e2; }
+
+.sparkle-page { 
+  background: radial-gradient(circle at top left, rgba(56,189,248,0.18), transparent 60%),
+              radial-gradient(circle at bottom right, rgba(244,114,182,0.18), transparent 60%);
+}
+.sparkle-banner {
+  margin-top: 5px;
+  margin-bottom: 10px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-weight: bold;
+  font-size: 14px;
+  color: #f9fafb;
+  background-image: linear-gradient(90deg, #22c55e, #a855f7, #ec4899);
+  box-shadow: 0 0 16px rgba(244,114,182,0.7);
+}
+.sparkle-message {
+  margin-top: 12px;
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-weight: bold;
+  display: inline-block;
+}
+#dept2, #dept4, #dept5, #dept6, #dept7, #dept8, #div5, #div7, #div8 { margin-top: 5px; margin-bottom: 10px; }
+#p8 h3, #p7 h3, #p6 h3, #p5 h3, #p4 h3, #p3 h3, #p2 h3, #pHires h3, #pFTCS h3, #p1 h3 { color: #ffffff; }
+#p8 label, #p7 label, #p6 label, #p5 label, #p4 label, #p3 label, #p2 label, #pHires label { color: #ffffff; }
+
+.xtick text, .ytick text, .gtitle, .ytitle text, .xtitle text {
+    font-weight: bold !important;
+}
+</style>
+</head>
+<body>
+
+<h2>Final Hire Workflow Improvement Dashboard</h2>
+
+<div class="nav-buttons">
+  <button id="btn1" class="active" onclick="showPage('p1')">Page 1: Mean TTH by Department</button>
+    <button id="btnHires" onclick="showPage('pHires')">Page 2: Total Hires by Dept & Division</button>
+  <button id="btn2" onclick="showPage('p2')">Page 3: Average Days by Stage</button>
+  <button id="btn3" onclick="showPage('p3')">Page 4: Overall TTH</button>
+  <button id="btnFTCS" onclick="showPage('pFTCS')">Page 5: FT Civil Service Outcomes</button>
+  <button id="btn4" onclick="showPage('p4')">Page 6: Mean TTH by Division</button>
+  <button id="btn5" onclick="showPage('p5')">Page 7: Division Stage Breakdown</button>
+  <button id="btn6" onclick="showPage('p6')">Page 8: Divisions Above 65 Days</button>
+  <button id="btn7" onclick="showPage('p7')">Page 9: Departments ≤ 65 Days</button>
+  <button id="btn8" onclick="showPage('p8')">Page 10: Divisions &gt; 65 Days (All)</button>
+</div>
+
+<!-- PAGE 1 -->
+<div id="p1" class="page active">
+  <h3>Mean Time to Hire by Department</h3>
+  <div id="chart1" style="width:100%;max-width:1500px;height:750px;"></div>
+</div>
+
+
+<!-- PAGE 2: TOTAL HIRES BY DEPARTMENT & DIVISION -->
+<div id="pHires" class="page">
+  <h3>Total Hires by Department & Division</h3>
+  <label for="deptHires">Select Department:</label><br>
+  <select id="deptHires"></select>
+  <br><br>
+  <label for="divHires">Select Division:</label><br>
+  <select id="divHires"></select>
+  <div id="chartHires" style="width:100%;max-width:900px;height:550px;margin-top:10px;"></div>
+  <div id="errorHires" style="color:yellow;font-weight:bold;margin-top:10px;"></div>
+</div>
+
+<!-- PAGE 2 -->
+<div id="p2" class="page">
+  <h3>Overall Average Days by Stage (All Departments or Selected Department)</h3>
+  <label for="dept2">Select Department:</label><br>
+  <select id="dept2">
+    <option value="ALL">All Departments</option><option value="City of Little Rock Zoo">City of Little Rock Zoo</option><option value="Community Programs">Community Programs</option><option value="District Crt-1st Div Criminal">District Crt-1st Div Criminal</option><option value="District Crt-2nd Div Traffic">District Crt-2nd Div Traffic</option><option value="District Crt-3rd Div Environmental">District Crt-3rd Div Environmental</option><option value="Emergency Communications Ctr">Emergency Communications Ctr</option><option value="FIRE 40 HR">FIRE 40 HR</option><option value="FIRE 56 HR">FIRE 56 HR</option><option value="Finance Department">Finance Department</option><option value="Fleet Department">Fleet Department</option><option value="Housing and Neighborhood Programs Department">Housing and Neighborhood Programs Department</option><option value="Human Resources Department">Human Resources Department</option><option value="Information Technology Department">Information Technology Department</option><option value="Little Rock Convention & Visitors Bureau">Little Rock Convention & Visitors Bureau</option><option value="Office of City Attorney">Office of City Attorney</option><option value="Office of Executive Administration">Office of Executive Administration</option><option value="Parks and Recreation Department">Parks and Recreation Department</option><option value="Planning Department">Planning Department</option><option value="Police Department">Police Department</option><option value="Public Works Department">Public Works Department</option><option value="Unknown Department">Unknown Department</option><option value="Zoo - Intern">Zoo - Intern</option>
+  </select>
+  <div id="chart2" style="width:100%;max-width:900px;height:550px;"></div>
+</div>
+
+<!-- PAGE 3 -->
+<div id="p3" class="page">
+  <h3></h3>
+  <div class="big-number"></div>
+  <div style="display:flex;flex-wrap:nowrap;gap:10px;align-items:flex-start;">
+    <div style="flex:1 1 0;max-width:50%;padding:0;margin:0;">
+      <!-- Title intentionally left blank to remove white text heading -->
+      <div style="height:24px;margin-bottom:10px;"></div>
+      <div id="chart3" style="height:400px; "></div>
+    </div>
+
+    <div style="flex:1 1 0;max-width:50%;padding:0;margin:0;">
+      <!-- Title intentionally left blank to remove white text heading -->
+      <div style="height:24px;margin-bottom:10px;"></div>
+      <div id="chart3b" style="height:420px;"></div>
+    </div>
+  </div>
+</div>
+
+
+<!-- PAGE 5 (NEW) -->
+<div id="pFTCS" class="page">
+  <h3>Full-Time Civil Service Hiring Outcomes (As of Dec. 22, 2025)</h3>
+  <div style="display:flex;flex-wrap:wrap;gap:20px;align-items:stretch;">
+    <div style="flex:1 1 320px;background:#111111;border:1px solid #444;border-radius:10px;padding:16px;">
+      <div style="color:#ffffff;font-size:14px;font-weight:bold;">Total Full-Time Civil Service Employees Hired</div>
+      <div id="ftcsTotal" class="big-number"></div>
+    </div>
+    <div style="flex:1 1 320px;background:#111111;border:1px solid #444;border-radius:10px;padding:16px;">
+      <div style="color:#ffffff;font-size:14px;font-weight:bold;">Average Total Time to Hire (Days)</div>
+      <div id="ftcsAvg" class="big-number"></div>
+    </div>
+  </div>
+  <div style="color:#ffffff;margin-top:10px;font-size:12px;">
+    Source: December 22 Hire Workflow Dashboard Data (Job Type = Full Time Civil Service Position)
+  </div>
+</div>
+
+<!-- PAGE 4 -->
+<div id="p4" class="page">
+  <h3>Average Time to Hire by Division (Filtered by Department, 65-Day Benchmark)</h3>
+  <label for="dept4">Select Department:</label><br>
+  <select id="dept4">
+    <option value="City of Little Rock Zoo">City of Little Rock Zoo</option><option value="Community Programs">Community Programs</option><option value="District Crt-1st Div Criminal">District Crt-1st Div Criminal</option><option value="District Crt-2nd Div Traffic">District Crt-2nd Div Traffic</option><option value="District Crt-3rd Div Environmental">District Crt-3rd Div Environmental</option><option value="Emergency Communications Ctr">Emergency Communications Ctr</option><option value="FIRE 40 HR">FIRE 40 HR</option><option value="FIRE 56 HR">FIRE 56 HR</option><option value="Finance Department">Finance Department</option><option value="Fleet Department">Fleet Department</option><option value="Housing and Neighborhood Programs Department">Housing and Neighborhood Programs Department</option><option value="Human Resources Department">Human Resources Department</option><option value="Information Technology Department">Information Technology Department</option><option value="Little Rock Convention & Visitors Bureau">Little Rock Convention & Visitors Bureau</option><option value="Office of City Attorney">Office of City Attorney</option><option value="Office of Executive Administration">Office of Executive Administration</option><option value="Parks and Recreation Department">Parks and Recreation Department</option><option value="Planning Department">Planning Department</option><option value="Police Department">Police Department</option><option value="Public Works Department">Public Works Department</option><option value="Unknown Department">Unknown Department</option><option value="Zoo - Intern">Zoo - Intern</option>
+  </select>
+  <div id="chart4" style="width:100%;max-width:900px;height:550px;"></div>
+  <div id="error4" style="color:yellow;font-weight:bold;margin-top:10px;"></div>
+</div>
+
+<!-- PAGE 5 -->
+<div id="p5" class="page">
+  <h3>Division Stage Breakdown (by Department & Division)</h3>
+  <label for="dept5">Select Department:</label><br>
+  <select id="dept5">
+    <option value="ALL">All Departments</option><option value="City of Little Rock Zoo">City of Little Rock Zoo</option><option value="Community Programs">Community Programs</option><option value="District Crt-1st Div Criminal">District Crt-1st Div Criminal</option><option value="District Crt-2nd Div Traffic">District Crt-2nd Div Traffic</option><option value="District Crt-3rd Div Environmental">District Crt-3rd Div Environmental</option><option value="Emergency Communications Ctr">Emergency Communications Ctr</option><option value="FIRE 40 HR">FIRE 40 HR</option><option value="FIRE 56 HR">FIRE 56 HR</option><option value="Finance Department">Finance Department</option><option value="Fleet Department">Fleet Department</option><option value="Housing and Neighborhood Programs Department">Housing and Neighborhood Programs Department</option><option value="Human Resources Department">Human Resources Department</option><option value="Information Technology Department">Information Technology Department</option><option value="Little Rock Convention & Visitors Bureau">Little Rock Convention & Visitors Bureau</option><option value="Office of City Attorney">Office of City Attorney</option><option value="Office of Executive Administration">Office of Executive Administration</option><option value="Parks and Recreation Department">Parks and Recreation Department</option><option value="Planning Department">Planning Department</option><option value="Police Department">Police Department</option><option value="Public Works Department">Public Works Department</option><option value="Unknown Department">Unknown Department</option><option value="Zoo - Intern">Zoo - Intern</option>
+  </select>
+  <br><br>
+  <label for="div5">Select Division:</label><br>
+  <select id="div5"></select>
+  <div id="chart5" style="width:100%;max-width:900px;height:550px;"></div>
+  <div id="error5" style="color:yellow;font-weight:bold;margin-top:10px;"></div>
+</div>
+
+<!-- PAGE 6 -->
+<div id="p6" class="page">
+  <h3>Departments & Divisions with Average Time to Hire &gt; 65 Days</h3>
+  <label for="dept6">Filter by Department:</label><br>
+  <select id="dept6">
+    <option value="ALL">All Departments</option><option value="City of Little Rock Zoo">City of Little Rock Zoo</option><option value="Community Programs">Community Programs</option><option value="District Crt-1st Div Criminal">District Crt-1st Div Criminal</option><option value="District Crt-2nd Div Traffic">District Crt-2nd Div Traffic</option><option value="District Crt-3rd Div Environmental">District Crt-3rd Div Environmental</option><option value="Emergency Communications Ctr">Emergency Communications Ctr</option><option value="FIRE 40 HR">FIRE 40 HR</option><option value="FIRE 56 HR">FIRE 56 HR</option><option value="Finance Department">Finance Department</option><option value="Fleet Department">Fleet Department</option><option value="Housing and Neighborhood Programs Department">Housing and Neighborhood Programs Department</option><option value="Human Resources Department">Human Resources Department</option><option value="Information Technology Department">Information Technology Department</option><option value="Little Rock Convention & Visitors Bureau">Little Rock Convention & Visitors Bureau</option><option value="Office of City Attorney">Office of City Attorney</option><option value="Office of Executive Administration">Office of Executive Administration</option><option value="Parks and Recreation Department">Parks and Recreation Department</option><option value="Planning Department">Planning Department</option><option value="Police Department">Police Department</option><option value="Public Works Department">Public Works Department</option><option value="Unknown Department">Unknown Department</option><option value="Zoo - Intern">Zoo - Intern</option>
+  </select>
+  <table id="table6">
+    <thead>
+      <tr>
+        <th>Department</th>
+        <th>Division</th>
+        <th>Average Total Time to Hire (Days)</th>
+      </tr>
+    </thead>
+    <tbody id="table6Body"></tbody>
+  </table>
+  <div id="error6" style="font-weight:bold;margin-top:10px;padding:8px 10px;border-radius:6px;display:inline-block;"></div>
+</div>
+
+<!-- PAGE 7 -->
+<div id="p7" class="page sparkle-page">
+  <h3>Departments Meeting the 65-Day Performance Goal</h3>
+  <div class="sparkle-banner">
+    ✨ Congratulations to these departments for averaging 65 days or less from posting to hire! ✨
+  </div>
+  <label for="dept7">Filter by Department:</label><br>
+  <select id="dept7"></select>
+  <br><br>
+  <label for="div7">Filter by Division:</label><br>
+  <select id="div7"></select>
+  <table id="table7">
+    <thead>
+      <tr>
+        <th>Department</th>
+        <th>Division</th>
+        <th>Average Total Time to Hire (Days)</th>
+      </tr>
+    </thead>
+    <tbody id="table7Body"></tbody>
+  </table>
+  <div id="error7" class="sparkle-message"></div>
+</div>
+
+
+<!-- PAGE 8 -->
+<div id="p8" class="page">
+  <h3>Departments &amp; Divisions with Average Time to Hire &gt; 65 Days (All)</h3>
+  <label for="dept8">Filter by Department:</label><br>
+  <select id="dept8"></select>
+  <br><br>
+  <label for="div8">Filter by Division:</label><br>
+  <select id="div8"></select>
+  <table id="table8">
+    <thead>
+      <tr>
+        <th>Department</th>
+        <th>Division</th>
+        <th>Average Total Time to Hire (Days)</th>
+      </tr>
+    </thead>
+    <tbody id="table8Body"></tbody>
+  </table>
+  <div id="error8" style="font-weight:bold;margin-top:10px;padding:8px 10px;border-radius:6px;display:inline-block;"></div>
+</div>
+
+<script>
+var rawDataDept = [{"Department": "City of Little Rock Zoo", "Mean_TTH": 78.8261, "Requisition Final Approval Date": 12.1304, "Job Posting": 17.5, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 41.8261, "Offer and Equity Review": 1.6304, "Pre-Employments and On-Boarding": 5.7391}, {"Department": "Community Programs", "Mean_TTH": 119.7116, "Requisition Final Approval Date": 4.03, "Job Posting": 35.0637, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 64.0449, "Offer and Equity Review": 0.1536, "Pre-Employments and On-Boarding": 16.4195}, {"Department": "District Crt-1st Div Criminal", "Mean_TTH": 47.4, "Requisition Final Approval Date": 1.6, "Job Posting": 8.2, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 21.0, "Offer and Equity Review": 11.0, "Pre-Employments and On-Boarding": 5.6}, {"Department": "District Crt-2nd Div Traffic", "Mean_TTH": 67.0, "Requisition Final Approval Date": 2.6667, "Job Posting": 7.3333, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 36.3333, "Offer and Equity Review": 14.6667, "Pre-Employments and On-Boarding": 6.0}, {"Department": "District Crt-3rd Div Environmental", "Mean_TTH": 84.0, "Requisition Final Approval Date": 33.0, "Job Posting": 1.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 35.0, "Offer and Equity Review": 10.0, "Pre-Employments and On-Boarding": 5.0}, {"Department": "Emergency Communications Ctr", "Mean_TTH": 58.8, "Requisition Final Approval Date": 2.6, "Job Posting": 13.2, "Analyst Evaluation and/or Testing": 2.4, "Department Evaluation and Review": 13.5333, "Offer and Equity Review": 10.4, "Pre-Employments and On-Boarding": 16.6667}, {"Department": "FIRE 40 HR", "Mean_TTH": 147.0357, "Requisition Final Approval Date": 0.1071, "Job Posting": 21.5357, "Analyst Evaluation and/or Testing": 84.75, "Department Evaluation and Review": 9.25, "Offer and Equity Review": 18.4643, "Pre-Employments and On-Boarding": 12.9286}, {"Department": "FIRE 56 HR", "Mean_TTH": 152.2273, "Requisition Final Approval Date": 0.0, "Job Posting": 22.3636, "Analyst Evaluation and/or Testing": 128.1364, "Department Evaluation and Review": 0.0, "Offer and Equity Review": 1.1818, "Pre-Employments and On-Boarding": 0.5455}, {"Department": "Finance Department", "Mean_TTH": 62.3571, "Requisition Final Approval Date": 5.2143, "Job Posting": 6.9286, "Analyst Evaluation and/or Testing": 0.0714, "Department Evaluation and Review": 35.1429, "Offer and Equity Review": 3.6429, "Pre-Employments and On-Boarding": 11.3571}, {"Department": "Fleet Department", "Mean_TTH": 97.2857, "Requisition Final Approval Date": 16.3571, "Job Posting": 18.1429, "Analyst Evaluation and/or Testing": 0.2143, "Department Evaluation and Review": 47.6429, "Offer and Equity Review": 10.9286, "Pre-Employments and On-Boarding": 4.0}, {"Department": "Housing and Neighborhood Programs Department", "Mean_TTH": 90.2051, "Requisition Final Approval Date": 15.6154, "Job Posting": 6.7692, "Analyst Evaluation and/or Testing": 9.7949, "Department Evaluation and Review": 41.1538, "Offer and Equity Review": 11.0769, "Pre-Employments and On-Boarding": 5.7949}, {"Department": "Human Resources Department", "Mean_TTH": 55.1818, "Requisition Final Approval Date": 14.1818, "Job Posting": 4.6364, "Analyst Evaluation and/or Testing": 1.1818, "Department Evaluation and Review": 28.7273, "Offer and Equity Review": 2.9091, "Pre-Employments and On-Boarding": 3.5455}, {"Department": "Information Technology Department", "Mean_TTH": 62.6364, "Requisition Final Approval Date": 5.7273, "Job Posting": 6.8182, "Analyst Evaluation and/or Testing": 0.4545, "Department Evaluation and Review": 31.3636, "Offer and Equity Review": 11.7273, "Pre-Employments and On-Boarding": 6.5455}, {"Department": "Little Rock Convention & Visitors Bureau", "Mean_TTH": 75.1, "Requisition Final Approval Date": 4.3833, "Job Posting": 23.7, "Analyst Evaluation and/or Testing": 0.1, "Department Evaluation and Review": 42.45, "Offer and Equity Review": 0.2167, "Pre-Employments and On-Boarding": 4.25}, {"Department": "Office of City Attorney", "Mean_TTH": 40.3636, "Requisition Final Approval Date": 4.5455, "Job Posting": 6.4545, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 14.6364, "Offer and Equity Review": 5.9091, "Pre-Employments and On-Boarding": 8.8182}, {"Department": "Office of Executive Administration", "Mean_TTH": 40.3333, "Requisition Final Approval Date": 10.0667, "Job Posting": 3.7333, "Analyst Evaluation and/or Testing": 0.2667, "Department Evaluation and Review": 19.4, "Offer and Equity Review": 3.6667, "Pre-Employments and On-Boarding": 3.2}, {"Department": "Parks and Recreation Department", "Mean_TTH": 87.9732, "Requisition Final Approval Date": 8.3125, "Job Posting": 34.3929, "Analyst Evaluation and/or Testing": 0.0714, "Department Evaluation and Review": 34.9732, "Offer and Equity Review": 3.7232, "Pre-Employments and On-Boarding": 6.5}, {"Department": "Planning Department", "Mean_TTH": 56.0, "Requisition Final Approval Date": 9.2778, "Job Posting": 7.5, "Analyst Evaluation and/or Testing": 1.0, "Department Evaluation and Review": 26.3333, "Offer and Equity Review": 8.2778, "Pre-Employments and On-Boarding": 3.6111}, {"Department": "Police Department", "Mean_TTH": 110.1818, "Requisition Final Approval Date": 4.6364, "Job Posting": 13.4909, "Analyst Evaluation and/or Testing": 48.5636, "Department Evaluation and Review": 28.9091, "Offer and Equity Review": 9.8727, "Pre-Employments and On-Boarding": 4.7091}, {"Department": "Public Works Department", "Mean_TTH": 69.08, "Requisition Final Approval Date": 9.06, "Job Posting": 8.49, "Analyst Evaluation and/or Testing": 10.95, "Department Evaluation and Review": 27.41, "Offer and Equity Review": 6.93, "Pre-Employments and On-Boarding": 6.24}, {"Department": "Unknown Department", "Mean_TTH": 95.7299, "Requisition Final Approval Date": NaN, "Job Posting": NaN, "Analyst Evaluation and/or Testing": NaN, "Department Evaluation and Review": NaN, "Offer and Equity Review": NaN, "Pre-Employments and On-Boarding": NaN}, {"Department": "Zoo - Intern", "Mean_TTH": 111.6667, "Requisition Final Approval Date": 0.6667, "Job Posting": 36.3333, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 28.1667, "Offer and Equity Review": 0.0, "Pre-Employments and On-Boarding": 46.5}];
+var rawDataDiv = [{"Department": "City of Little Rock Zoo", "Division": "Zoo Animal Management", "Mean_TTH": 71.7273}, {"Department": "City of Little Rock Zoo", "Division": "Zoo Education", "Mean_TTH": 84.85}, {"Department": "City of Little Rock Zoo", "Division": "Zoo Facilities Operation", "Mean_TTH": 67.0}, {"Department": "City of Little Rock Zoo", "Division": "Zoo Visitor Services", "Mean_TTH": 47.6}, {"Department": "City of Little Rock Zoo", "Division": "Zoo-Administration", "Mean_TTH": 176.6667}, {"Department": "Community Programs", "Division": "Community Programs Admin", "Mean_TTH": 120.2302}, {"Department": "Community Programs", "Division": "Community Programs Operations", "Mean_TTH": 51.0}, {"Department": "District Crt-1st Div Criminal", "Division": "District Crt-1st Div Criminal", "Mean_TTH": 47.4}, {"Department": "District Crt-2nd Div Traffic", "Division": "District Crt-2nd Div Traffic", "Mean_TTH": 67.0}, {"Department": "District Crt-3rd Div Environmental", "Division": "District Crt-3rd Div Environ", "Mean_TTH": 84.0}, {"Department": "Emergency Communications Ctr", "Division": "Operations", "Mean_TTH": 58.8}, {"Department": "FIRE 40 HR", "Division": "Administration-40 HR", "Mean_TTH": 45.0}, {"Department": "FIRE 40 HR", "Division": "Fire Training-40 HR", "Mean_TTH": 150.8148}, {"Department": "FIRE 56 HR", "Division": "Station 1", "Mean_TTH": 155.1053}, {"Department": "FIRE 56 HR", "Division": "Station 14", "Mean_TTH": 92.0}, {"Department": "FIRE 56 HR", "Division": "Station 2", "Mean_TTH": 164.0}, {"Department": "FIRE 56 HR", "Division": "Unknown Division", "Mean_TTH": 146.0}, {"Department": "Finance Department", "Division": "Accounting & Reporting", "Mean_TTH": 61.0}, {"Department": "Finance Department", "Division": "Accounts Payable", "Mean_TTH": 30.0}, {"Department": "Finance Department", "Division": "Finance Administration", "Mean_TTH": 37.5}, {"Department": "Finance Department", "Division": "Grants Management", "Mean_TTH": 52.0}, {"Department": "Finance Department", "Division": "Procurement", "Mean_TTH": 79.0}, {"Department": "Finance Department", "Division": "Small Business development Ofc", "Mean_TTH": 90.0}, {"Department": "Fleet Department", "Division": "Fit-Fire Shop", "Mean_TTH": 92.0}, {"Department": "Fleet Department", "Division": "Fit-Fuel", "Mean_TTH": 194.0}, {"Department": "Fleet Department", "Division": "Fit-Je Davis Shop", "Mean_TTH": 115.3333}, {"Department": "Fleet Department", "Division": "Fit-Landfill Shop", "Mean_TTH": 68.0}, {"Department": "Fleet Department", "Division": "Fit-Tire Shop", "Mean_TTH": 162.0}, {"Department": "Fleet Department", "Division": "Flt-Financial Management", "Mean_TTH": 35.0}, {"Department": "Fleet Department", "Division": "Flt-Vehicle Storage Fa", "Mean_TTH": 86.0}, {"Department": "Housing and Neighborhood Programs Department", "Division": "Animal Services", "Mean_TTH": 45.5833}, {"Department": "Housing and Neighborhood Programs Department", "Division": "CDBG - Housing Programs", "Mean_TTH": 88.25}, {"Department": "Housing and Neighborhood Programs Department", "Division": "Environmental Services", "Mean_TTH": 39.0}, {"Department": "Housing and Neighborhood Programs Department", "Division": "H&N-Administration", "Mean_TTH": 35.0}, {"Department": "Housing and Neighborhood Programs Department", "Division": "Neighborhood Alert Centers", "Mean_TTH": 56.6667}, {"Department": "Housing and Neighborhood Programs Department", "Division": "Neighborhood Programs", "Mean_TTH": 152.4615}, {"Department": "Human Resources Department", "Division": "Human Resources", "Mean_TTH": 71.0}, {"Department": "Human Resources Department", "Division": "Tempstaff", "Mean_TTH": 42.0}, {"Department": "Information Technology Department", "Division": "Computer Operations", "Mean_TTH": 42.3333}, {"Department": "Information Technology Department", "Division": "IT-Administration", "Mean_TTH": 56.5}, {"Department": "Information Technology Department", "Division": "Networking", "Mean_TTH": 107.3333}, {"Department": "Little Rock Convention & Visitors Bureau", "Division": "Finance & Administration", "Mean_TTH": 103.0}, {"Department": "Little Rock Convention & Visitors Bureau", "Division": "General Management", "Mean_TTH": 102.0}, {"Department": "Little Rock Convention & Visitors Bureau", "Division": "Marketing & Communications", "Mean_TTH": 89.0}, {"Department": "Little Rock Convention & Visitors Bureau", "Division": "Operations", "Mean_TTH": 78.1282}, {"Department": "Little Rock Convention & Visitors Bureau", "Division": "Sales & Services", "Mean_TTH": 59.8667}, {"Department": "Office of City Attorney", "Division": "Office Of City Attorney", "Mean_TTH": 40.3636}, {"Department": "Office of Executive Administration", "Division": "311 Service Center", "Mean_TTH": 28.0}, {"Department": "Office of Executive Administration", "Division": "City Clerk", "Mean_TTH": 28.3333}, {"Department": "Office of Executive Administration", "Division": "Engagement and Opportunity", "Mean_TTH": 134.0}, {"Department": "Office of Executive Administration", "Division": "Executive Administration", "Mean_TTH": 30.5556}, {"Department": "Office of Executive Administration", "Division": "Unknown Division", "Mean_TTH": 83.0}, {"Department": "Parks and Recreation Department", "Division": "Athletics/Playgrounds", "Mean_TTH": 95.8293}, {"Department": "Parks and Recreation Department", "Division": "Community Center Admin", "Mean_TTH": 50.5}, {"Department": "Parks and Recreation Department", "Division": "Cultural-Museum", "Mean_TTH": 70.0}, {"Department": "Parks and Recreation Department", "Division": "Design/Scheduling", "Mean_TTH": 27.0}, {"Department": "Parks and Recreation Department", "Division": "Dev. & Main. Admin.", "Mean_TTH": 37.0}, {"Department": "Parks and Recreation Department", "Division": "Dunbar Community Center", "Mean_TTH": 79.0}, {"Department": "Parks and Recreation Department", "Division": "First Tee Golf Maintenance", "Mean_TTH": 47.3333}, {"Department": "Parks and Recreation Department", "Division": "First Tee Golf Pro", "Mean_TTH": 34.0}, {"Department": "Parks and Recreation Department", "Division": "Horticulture", "Mean_TTH": 58.0}, {"Department": "Parks and Recreation Department", "Division": "Jim Dailey Fitness and Aquatic Center", "Mean_TTH": 89.0909}, {"Department": "Parks and Recreation Department", "Division": "Marathon", "Mean_TTH": 69.0}, {"Department": "Parks and Recreation Department", "Division": "Operations & Improv. Dev.", "Mean_TTH": 69.5}, {"Department": "Parks and Recreation Department", "Division": "Parks Adminstration", "Mean_TTH": 41.0}, {"Department": "Parks and Recreation Department", "Division": "Parks Maintenance", "Mean_TTH": 90.0}, {"Department": "Parks and Recreation Department", "Division": "Parks Maintenance - Mowing", "Mean_TTH": 59.0}, {"Department": "Parks and Recreation Department", "Division": "Rebsamen Golf Admin", "Mean_TTH": 59.6667}, {"Department": "Parks and Recreation Department", "Division": "Rebsamen Golf Concession", "Mean_TTH": 21.0}, {"Department": "Parks and Recreation Department", "Division": "Rebsamen Golf Maintenance", "Mean_TTH": 28.0}, {"Department": "Parks and Recreation Department", "Division": "Rebsamen Tennis Center", "Mean_TTH": 240.0}, {"Department": "Parks and Recreation Department", "Division": "Resources Administration", "Mean_TTH": 64.0}, {"Department": "Parks and Recreation Department", "Division": "Senior Programs", "Mean_TTH": 41.0}, {"Department": "Parks and Recreation Department", "Division": "Southwest Community Center", "Mean_TTH": 95.6111}, {"Department": "Parks and Recreation Department", "Division": "Stephens Community Center", "Mean_TTH": 139.0}, {"Department": "Parks and Recreation Department", "Division": "Therapeutic", "Mean_TTH": 102.75}, {"Department": "Parks and Recreation Department", "Division": "Urban Forestry", "Mean_TTH": 52.0}, {"Department": "Parks and Recreation Department", "Division": "West Central Community Complex", "Mean_TTH": 70.3333}, {"Department": "Planning Department", "Division": "Building Codes", "Mean_TTH": 63.1429}, {"Department": "Planning Department", "Division": "Engineering", "Mean_TTH": 217.0}, {"Department": "Planning Department", "Division": "PL-Administration", "Mean_TTH": 36.0}, {"Department": "Planning Department", "Division": "Planning", "Mean_TTH": 38.0}, {"Department": "Planning Department", "Division": "Zoning & Subdivision", "Mean_TTH": 33.0}, {"Department": "Police Department", "Division": "Administration", "Mean_TTH": 50.6667}, {"Department": "Police Department", "Division": "Downtown", "Mean_TTH": 108.5714}, {"Department": "Police Department", "Division": "Headquarters", "Mean_TTH": 72.8421}, {"Department": "Police Department", "Division": "Major Crimes", "Mean_TTH": 71.7778}, {"Department": "Police Department", "Division": "Northwest", "Mean_TTH": 203.0}, {"Department": "Police Department", "Division": "Southwest", "Mean_TTH": 218.0}, {"Department": "Police Department", "Division": "Special Investigations", "Mean_TTH": 102.0}, {"Department": "Police Department", "Division": "Special Operations", "Mean_TTH": 146.3333}, {"Department": "Police Department", "Division": "Training", "Mean_TTH": 262.6667}, {"Department": "Public Works Department", "Division": "Building Services", "Mean_TTH": 221.0}, {"Department": "Public Works Department", "Division": "Civil Engineering", "Mean_TTH": 48.0}, {"Department": "Public Works Department", "Division": "Control Devices", "Mean_TTH": 158.0}, {"Department": "Public Works Department", "Division": "PW-Administration", "Mean_TTH": 85.0}, {"Department": "Public Works Department", "Division": "PW-Ops Administration", "Mean_TTH": 147.0}, {"Department": "Public Works Department", "Division": "Parking Enforcement", "Mean_TTH": 45.3333}, {"Department": "Public Works Department", "Division": "Resource Control & Scheduling", "Mean_TTH": 59.8}, {"Department": "Public Works Department", "Division": "Signals", "Mean_TTH": 41.0}, {"Department": "Public Works Department", "Division": "Solid Waste Collection", "Mean_TTH": 31.7381}, {"Department": "Public Works Department", "Division": "Storm Drain Main.", "Mean_TTH": 85.6364}, {"Department": "Public Works Department", "Division": "Street & Drain. Maint.", "Mean_TTH": 101.8333}, {"Department": "Public Works Department", "Division": "Traffic Engineering", "Mean_TTH": 49.0}, {"Department": "Unknown Department", "Division": "Unknown Division", "Mean_TTH": 95.7299}, {"Department": "Zoo - Intern", "Division": "Unknown Division", "Mean_TTH": 111.6667}];
+var rawDataDivStage = [{"Department": "City of Little Rock Zoo", "Division": "Zoo Animal Management", "Requisition Final Approval Date": 3.8182, "Job Posting": 18.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 37.8182, "Offer and Equity Review": 5.5455, "Pre-Employments and On-Boarding": 6.5455}, {"Department": "City of Little Rock Zoo", "Division": "Zoo Education", "Requisition Final Approval Date": 19.95, "Job Posting": 15.6, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 43.9, "Offer and Equity Review": 0.1, "Pre-Employments and On-Boarding": 5.3}, {"Department": "City of Little Rock Zoo", "Division": "Zoo Facilities Operation", "Requisition Final Approval Date": 1.0, "Job Posting": 7.5, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 44.5, "Offer and Equity Review": 6.0, "Pre-Employments and On-Boarding": 8.0}, {"Department": "City of Little Rock Zoo", "Division": "Zoo Visitor Services", "Requisition Final Approval Date": 2.8, "Job Posting": 16.7, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 22.6, "Offer and Equity Review": 0.0, "Pre-Employments and On-Boarding": 5.5}, {"Department": "City of Little Rock Zoo", "Division": "Zoo-Administration", "Requisition Final Approval Date": 29.0, "Job Posting": 37.6667, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 105.0, "Offer and Equity Review": 0.0, "Pre-Employments and On-Boarding": 5.0}, {"Department": "Community Programs", "Division": "Community Programs Admin", "Requisition Final Approval Date": 4.0566, "Job Posting": 35.2755, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 64.2642, "Offer and Equity Review": 0.0906, "Pre-Employments and On-Boarding": 16.5434}, {"Department": "Community Programs", "Division": "Community Programs Operations", "Requisition Final Approval Date": 0.5, "Job Posting": 7.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 35.0, "Offer and Equity Review": 8.5, "Pre-Employments and On-Boarding": 0.0}, {"Department": "District Crt-1st Div Criminal", "Division": "District Crt-1st Div Criminal", "Requisition Final Approval Date": 1.6, "Job Posting": 8.2, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 21.0, "Offer and Equity Review": 11.0, "Pre-Employments and On-Boarding": 5.6}, {"Department": "District Crt-2nd Div Traffic", "Division": "District Crt-2nd Div Traffic", "Requisition Final Approval Date": 2.6667, "Job Posting": 7.3333, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 36.3333, "Offer and Equity Review": 14.6667, "Pre-Employments and On-Boarding": 6.0}, {"Department": "District Crt-3rd Div Environmental", "Division": "District Crt-3rd Div Environ", "Requisition Final Approval Date": 33.0, "Job Posting": 1.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 35.0, "Offer and Equity Review": 10.0, "Pre-Employments and On-Boarding": 5.0}, {"Department": "Emergency Communications Ctr", "Division": "Operations", "Requisition Final Approval Date": 2.6, "Job Posting": 13.2, "Analyst Evaluation and/or Testing": 2.4, "Department Evaluation and Review": 13.5333, "Offer and Equity Review": 10.4, "Pre-Employments and On-Boarding": 16.6667}, {"Department": "FIRE 40 HR", "Division": "Administration-40 HR", "Requisition Final Approval Date": 3.0, "Job Posting": 7.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 22.0, "Offer and Equity Review": 10.0, "Pre-Employments and On-Boarding": 3.0}, {"Department": "FIRE 40 HR", "Division": "Fire Training-40 HR", "Requisition Final Approval Date": 0.0, "Job Posting": 22.0741, "Analyst Evaluation and/or Testing": 87.8889, "Department Evaluation and Review": 8.7778, "Offer and Equity Review": 18.7778, "Pre-Employments and On-Boarding": 13.2963}, {"Department": "FIRE 56 HR", "Division": "Station 1", "Requisition Final Approval Date": 0.0, "Job Posting": 22.4737, "Analyst Evaluation and/or Testing": 130.7895, "Department Evaluation and Review": 0.0, "Offer and Equity Review": 1.2105, "Pre-Employments and On-Boarding": 0.6316}, {"Department": "FIRE 56 HR", "Division": "Station 14", "Requisition Final Approval Date": 0.0, "Job Posting": 23.0, "Analyst Evaluation and/or Testing": 68.0, "Department Evaluation and Review": 0.0, "Offer and Equity Review": 1.0, "Pre-Employments and On-Boarding": 0.0}, {"Department": "FIRE 56 HR", "Division": "Station 2", "Requisition Final Approval Date": 0.0, "Job Posting": 21.0, "Analyst Evaluation and/or Testing": 142.0, "Department Evaluation and Review": 0.0, "Offer and Equity Review": 1.0, "Pre-Employments and On-Boarding": 0.0}, {"Department": "FIRE 56 HR", "Division": "Unknown Division", "Requisition Final Approval Date": 0.0, "Job Posting": 21.0, "Analyst Evaluation and/or Testing": 124.0, "Department Evaluation and Review": 0.0, "Offer and Equity Review": 1.0, "Pre-Employments and On-Boarding": 0.0}, {"Department": "Finance Department", "Division": "Accounting & Reporting", "Requisition Final Approval Date": 4.0, "Job Posting": 7.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 21.5, "Offer and Equity Review": 6.0, "Pre-Employments and On-Boarding": 22.5}, {"Department": "Finance Department", "Division": "Accounts Payable", "Requisition Final Approval Date": 2.0, "Job Posting": 6.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 9.0, "Offer and Equity Review": 2.5, "Pre-Employments and On-Boarding": 10.5}, {"Department": "Finance Department", "Division": "Finance Administration", "Requisition Final Approval Date": 2.0, "Job Posting": 7.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 15.0, "Offer and Equity Review": 4.0, "Pre-Employments and On-Boarding": 9.5}, {"Department": "Finance Department", "Division": "Grants Management", "Requisition Final Approval Date": 0.0, "Job Posting": 5.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 41.0, "Offer and Equity Review": 0.0, "Pre-Employments and On-Boarding": 6.0}, {"Department": "Finance Department", "Division": "Procurement", "Requisition Final Approval Date": 2.8333, "Job Posting": 7.5, "Analyst Evaluation and/or Testing": 0.1667, "Department Evaluation and Review": 55.0, "Offer and Equity Review": 3.5, "Pre-Employments and On-Boarding": 10.0}, {"Department": "Finance Department", "Division": "Small Business development Ofc", "Requisition Final Approval Date": 40.0, "Job Posting": 7.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 30.0, "Offer and Equity Review": 5.0, "Pre-Employments and On-Boarding": 8.0}, {"Department": "Fleet Department", "Division": "Fit-Fire Shop", "Requisition Final Approval Date": 2.0, "Job Posting": 7.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 44.0, "Offer and Equity Review": 34.0, "Pre-Employments and On-Boarding": 5.0}, {"Department": "Fleet Department", "Division": "Fit-Fuel", "Requisition Final Approval Date": 55.0, "Job Posting": 32.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 80.0, "Offer and Equity Review": 24.0, "Pre-Employments and On-Boarding": 3.0}, {"Department": "Fleet Department", "Division": "Fit-Je Davis Shop", "Requisition Final Approval Date": 4.0, "Job Posting": 22.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 70.6667, "Offer and Equity Review": 15.6667, "Pre-Employments and On-Boarding": 3.0}, {"Department": "Fleet Department", "Division": "Fit-Landfill Shop", "Requisition Final Approval Date": 1.0, "Job Posting": 15.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 44.0, "Offer and Equity Review": 6.0, "Pre-Employments and On-Boarding": 2.0}, {"Department": "Fleet Department", "Division": "Fit-Tire Shop", "Requisition Final Approval Date": 48.0, "Job Posting": 21.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 68.0, "Offer and Equity Review": 14.0, "Pre-Employments and On-Boarding": 11.0}, {"Department": "Fleet Department", "Division": "Flt-Financial Management", "Requisition Final Approval Date": 4.5, "Job Posting": 4.5, "Analyst Evaluation and/or Testing": 1.5, "Department Evaluation and Review": 15.0, "Offer and Equity Review": 8.0, "Pre-Employments and On-Boarding": 1.5}, {"Department": "Fleet Department", "Division": "Flt-Vehicle Storage Fa", "Requisition Final Approval Date": 20.4, "Job Posting": 20.8, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 37.8, "Offer and Equity Review": 2.4, "Pre-Employments and On-Boarding": 4.6}, {"Department": "Housing and Neighborhood Programs Department", "Division": "Animal Services", "Requisition Final Approval Date": 3.5, "Job Posting": 6.75, "Analyst Evaluation and/or Testing": 0.0833, "Department Evaluation and Review": 17.9167, "Offer and Equity Review": 11.1667, "Pre-Employments and On-Boarding": 6.1667}, {"Department": "Housing and Neighborhood Programs Department", "Division": "CDBG - Housing Programs", "Requisition Final Approval Date": 20.375, "Job Posting": 6.875, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 43.375, "Offer and Equity Review": 11.375, "Pre-Employments and On-Boarding": 6.25}, {"Department": "Housing and Neighborhood Programs Department", "Division": "Environmental Services", "Requisition Final Approval Date": 5.0, "Job Posting": 7.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 25.0, "Offer and Equity Review": 0.0, "Pre-Employments and On-Boarding": 2.0}, {"Department": "Housing and Neighborhood Programs Department", "Division": "H&N-Administration", "Requisition Final Approval Date": 5.0, "Job Posting": 7.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 12.0, "Offer and Equity Review": 8.0, "Pre-Employments and On-Boarding": 3.0}, {"Department": "Housing and Neighborhood Programs Department", "Division": "Neighborhood Alert Centers", "Requisition Final Approval Date": 5.0, "Job Posting": 7.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 25.0, "Offer and Equity Review": 9.0, "Pre-Employments and On-Boarding": 10.6667}, {"Department": "Housing and Neighborhood Programs Department", "Division": "Neighborhood Programs", "Requisition Final Approval Date": 28.7692, "Job Posting": 6.6154, "Analyst Evaluation and/or Testing": 29.3077, "Department Evaluation and Review": 69.6923, "Offer and Equity Review": 13.2308, "Pre-Employments and On-Boarding": 4.8462}, {"Department": "Human Resources Department", "Division": "Human Resources", "Requisition Final Approval Date": 19.2, "Job Posting": 5.2, "Analyst Evaluation and/or Testing": 2.6, "Department Evaluation and Review": 34.2, "Offer and Equity Review": 3.8, "Pre-Employments and On-Boarding": 6.0}, {"Department": "Human Resources Department", "Division": "Tempstaff", "Requisition Final Approval Date": 10.0, "Job Posting": 4.1667, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 24.1667, "Offer and Equity Review": 2.1667, "Pre-Employments and On-Boarding": 1.5}, {"Department": "Information Technology Department", "Division": "Computer Operations", "Requisition Final Approval Date": 3.5, "Job Posting": 4.5, "Analyst Evaluation and/or Testing": 0.5, "Department Evaluation and Review": 16.1667, "Offer and Equity Review": 12.6667, "Pre-Employments and On-Boarding": 5.0}, {"Department": "Information Technology Department", "Division": "IT-Administration", "Requisition Final Approval Date": 14.5, "Job Posting": 6.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 26.0, "Offer and Equity Review": 0.0, "Pre-Employments and On-Boarding": 10.0}, {"Department": "Information Technology Department", "Division": "Networking", "Requisition Final Approval Date": 4.3333, "Job Posting": 12.0, "Analyst Evaluation and/or Testing": 0.6667, "Department Evaluation and Review": 65.3333, "Offer and Equity Review": 17.6667, "Pre-Employments and On-Boarding": 7.3333}, {"Department": "Little Rock Convention & Visitors Bureau", "Division": "Finance & Administration", "Requisition Final Approval Date": 2.0, "Job Posting": 22.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 75.0, "Offer and Equity Review": 0.0, "Pre-Employments and On-Boarding": 4.0}, {"Department": "Little Rock Convention & Visitors Bureau", "Division": "General Management", "Requisition Final Approval Date": 2.0, "Job Posting": 20.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 54.0, "Offer and Equity Review": 0.0, "Pre-Employments and On-Boarding": 26.0}, {"Department": "Little Rock Convention & Visitors Bureau", "Division": "Marketing & Communications", "Requisition Final Approval Date": 3.0, "Job Posting": 16.75, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 65.75, "Offer and Equity Review": 0.0, "Pre-Employments and On-Boarding": 3.5}, {"Department": "Little Rock Convention & Visitors Bureau", "Division": "Operations", "Requisition Final Approval Date": 5.2308, "Job Posting": 25.2564, "Analyst Evaluation and/or Testing": 0.0769, "Department Evaluation and Review": 43.2821, "Offer and Equity Review": 0.3333, "Pre-Employments and On-Boarding": 3.9487}, {"Department": "Little Rock Convention & Visitors Bureau", "Division": "Sales & Services", "Requisition Final Approval Date": 2.8667, "Job Posting": 21.8667, "Analyst Evaluation and/or Testing": 0.2, "Department Evaluation and Review": 31.1333, "Offer and Equity Review": 0.0, "Pre-Employments and On-Boarding": 3.8}, {"Department": "Office of City Attorney", "Division": "Office Of City Attorney", "Requisition Final Approval Date": 4.5455, "Job Posting": 6.4545, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 14.6364, "Offer and Equity Review": 5.9091, "Pre-Employments and On-Boarding": 8.8182}, {"Department": "Office of Executive Administration", "Division": "311 Service Center", "Requisition Final Approval Date": 4.0, "Job Posting": 4.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 9.0, "Offer and Equity Review": 9.0, "Pre-Employments and On-Boarding": 2.0}, {"Department": "Office of Executive Administration", "Division": "City Clerk", "Requisition Final Approval Date": 2.0, "Job Posting": 3.6667, "Analyst Evaluation and/or Testing": 0.3333, "Department Evaluation and Review": 14.0, "Offer and Equity Review": 4.0, "Pre-Employments and On-Boarding": 4.3333}, {"Department": "Office of Executive Administration", "Division": "Engagement and Opportunity", "Requisition Final Approval Date": 54.0, "Job Posting": 1.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 79.0, "Offer and Equity Review": 0.0, "Pre-Employments and On-Boarding": 0.0}, {"Department": "Office of Executive Administration", "Division": "Executive Administration", "Requisition Final Approval Date": 9.5556, "Job Posting": 3.6667, "Analyst Evaluation and/or Testing": 0.3333, "Department Evaluation and Review": 10.4444, "Offer and Equity Review": 3.3333, "Pre-Employments and On-Boarding": 3.2222}, {"Department": "Office of Executive Administration", "Division": "Unknown Division", "Requisition Final Approval Date": 1.0, "Job Posting": 7.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 67.0, "Offer and Equity Review": 4.0, "Pre-Employments and On-Boarding": 4.0}, {"Department": "Parks and Recreation Department", "Division": "Athletics/Playgrounds", "Requisition Final Approval Date": 1.6098, "Job Posting": 53.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 34.122, "Offer and Equity Review": 0.4146, "Pre-Employments and On-Boarding": 6.6829}, {"Department": "Parks and Recreation Department", "Division": "Community Center Admin", "Requisition Final Approval Date": 3.5, "Job Posting": 5.5, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 23.0, "Offer and Equity Review": 10.0, "Pre-Employments and On-Boarding": 8.5}, {"Department": "Parks and Recreation Department", "Division": "Cultural-Museum", "Requisition Final Approval Date": 20.5, "Job Posting": 6.5, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 31.0, "Offer and Equity Review": 7.5, "Pre-Employments and On-Boarding": 4.5}, {"Department": "Parks and Recreation Department", "Division": "Design/Scheduling", "Requisition Final Approval Date": 5.0, "Job Posting": 2.0, "Analyst Evaluation and/or Testing": 1.0, "Department Evaluation and Review": 2.0, "Offer and Equity Review": 13.0, "Pre-Employments and On-Boarding": 4.0}, {"Department": "Parks and Recreation Department", "Division": "Dev. & Main. Admin.", "Requisition Final Approval Date": 1.0, "Job Posting": 14.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 17.0, "Offer and Equity Review": 0.0, "Pre-Employments and On-Boarding": 5.0}, {"Department": "Parks and Recreation Department", "Division": "Dunbar Community Center", "Requisition Final Approval Date": 3.0, "Job Posting": 7.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 26.0, "Offer and Equity Review": 25.0, "Pre-Employments and On-Boarding": 18.0}, {"Department": "Parks and Recreation Department", "Division": "First Tee Golf Maintenance", "Requisition Final Approval Date": 3.6667, "Job Posting": 21.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 10.0, "Offer and Equity Review": 4.6667, "Pre-Employments and On-Boarding": 8.0}, {"Department": "Parks and Recreation Department", "Division": "First Tee Golf Pro", "Requisition Final Approval Date": 3.0, "Job Posting": 7.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 12.5, "Offer and Equity Review": 8.5, "Pre-Employments and On-Boarding": 3.0}, {"Department": "Parks and Recreation Department", "Division": "Horticulture", "Requisition Final Approval Date": 3.5, "Job Posting": 7.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 20.0, "Offer and Equity Review": 24.0, "Pre-Employments and On-Boarding": 3.5}, {"Department": "Parks and Recreation Department", "Division": "Jim Dailey Fitness and Aquatic Center", "Requisition Final Approval Date": 9.5455, "Job Posting": 37.5455, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 34.7273, "Offer and Equity Review": 1.9091, "Pre-Employments and On-Boarding": 5.3636}, {"Department": "Parks and Recreation Department", "Division": "Marathon", "Requisition Final Approval Date": 6.5, "Job Posting": 11.5, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 28.0, "Offer and Equity Review": 14.0, "Pre-Employments and On-Boarding": 9.0}, {"Department": "Parks and Recreation Department", "Division": "Operations & Improv. Dev.", "Requisition Final Approval Date": 1.5, "Job Posting": 7.5, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 35.0, "Offer and Equity Review": 20.5, "Pre-Employments and On-Boarding": 5.0}, {"Department": "Parks and Recreation Department", "Division": "Parks Adminstration", "Requisition Final Approval Date": 2.0, "Job Posting": 3.0, "Analyst Evaluation and/or Testing": 1.0, "Department Evaluation and Review": 14.0, "Offer and Equity Review": 18.0, "Pre-Employments and On-Boarding": 3.0}, {"Department": "Parks and Recreation Department", "Division": "Parks Maintenance", "Requisition Final Approval Date": 24.3333, "Job Posting": 7.6667, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 40.3333, "Offer and Equity Review": 13.6667, "Pre-Employments and On-Boarding": 4.0}, {"Department": "Parks and Recreation Department", "Division": "Parks Maintenance - Mowing", "Requisition Final Approval Date": 6.0, "Job Posting": 7.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 44.0, "Offer and Equity Review": 1.0, "Pre-Employments and On-Boarding": 1.0}, {"Department": "Parks and Recreation Department", "Division": "Rebsamen Golf Admin", "Requisition Final Approval Date": 4.0, "Job Posting": 7.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 35.6667, "Offer and Equity Review": 6.6667, "Pre-Employments and On-Boarding": 6.3333}, {"Department": "Parks and Recreation Department", "Division": "Rebsamen Golf Concession", "Requisition Final Approval Date": 3.0, "Job Posting": 7.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 8.0, "Offer and Equity Review": 0.0, "Pre-Employments and On-Boarding": 3.0}, {"Department": "Parks and Recreation Department", "Division": "Rebsamen Golf Maintenance", "Requisition Final Approval Date": 0.0, "Job Posting": 8.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 3.0, "Offer and Equity Review": 10.0, "Pre-Employments and On-Boarding": 7.0}, {"Department": "Parks and Recreation Department", "Division": "Rebsamen Tennis Center", "Requisition Final Approval Date": 102.3333, "Job Posting": 8.3333, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 123.0, "Offer and Equity Review": 0.0, "Pre-Employments and On-Boarding": 6.3333}, {"Department": "Parks and Recreation Department", "Division": "Resources Administration", "Requisition Final Approval Date": 4.0, "Job Posting": 2.0, "Analyst Evaluation and/or Testing": 5.0, "Department Evaluation and Review": 35.0, "Offer and Equity Review": 2.0, "Pre-Employments and On-Boarding": 16.0}, {"Department": "Parks and Recreation Department", "Division": "Senior Programs", "Requisition Final Approval Date": 3.0, "Job Posting": 6.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 30.0, "Offer and Equity Review": 0.0, "Pre-Employments and On-Boarding": 2.0}, {"Department": "Parks and Recreation Department", "Division": "Southwest Community Center", "Requisition Final Approval Date": 7.7778, "Job Posting": 42.2222, "Analyst Evaluation and/or Testing": 0.0556, "Department Evaluation and Review": 38.8889, "Offer and Equity Review": 0.7778, "Pre-Employments and On-Boarding": 5.8889}, {"Department": "Parks and Recreation Department", "Division": "Stephens Community Center", "Requisition Final Approval Date": 70.0, "Job Posting": 5.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 48.0, "Offer and Equity Review": 11.0, "Pre-Employments and On-Boarding": 5.0}, {"Department": "Parks and Recreation Department", "Division": "Therapeutic", "Requisition Final Approval Date": 6.0, "Job Posting": 49.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 32.0, "Offer and Equity Review": 0.0, "Pre-Employments and On-Boarding": 15.75}, {"Department": "Parks and Recreation Department", "Division": "Urban Forestry", "Requisition Final Approval Date": 4.0, "Job Posting": 6.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 21.0, "Offer and Equity Review": 16.0, "Pre-Employments and On-Boarding": 5.0}, {"Department": "Parks and Recreation Department", "Division": "West Central Community Complex", "Requisition Final Approval Date": 5.0, "Job Posting": 7.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 44.6667, "Offer and Equity Review": 8.3333, "Pre-Employments and On-Boarding": 5.3333}, {"Department": "Planning Department", "Division": "Building Codes", "Requisition Final Approval Date": 9.0, "Job Posting": 6.8571, "Analyst Evaluation and/or Testing": 1.1429, "Department Evaluation and Review": 36.4286, "Offer and Equity Review": 6.2857, "Pre-Employments and On-Boarding": 3.4286}, {"Department": "Planning Department", "Division": "Engineering", "Requisition Final Approval Date": 72.0, "Job Posting": 42.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 94.0, "Offer and Equity Review": 7.0, "Pre-Employments and On-Boarding": 2.0}, {"Department": "Planning Department", "Division": "PL-Administration", "Requisition Final Approval Date": 3.3333, "Job Posting": 4.3333, "Analyst Evaluation and/or Testing": 0.3333, "Department Evaluation and Review": 16.3333, "Offer and Equity Review": 10.0, "Pre-Employments and On-Boarding": 1.6667}, {"Department": "Planning Department", "Division": "Planning", "Requisition Final Approval Date": 6.0, "Job Posting": 3.5, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 14.5, "Offer and Equity Review": 5.0, "Pre-Employments and On-Boarding": 9.0}, {"Department": "Planning Department", "Division": "Zoning & Subdivision", "Requisition Final Approval Date": 2.0, "Job Posting": 5.0, "Analyst Evaluation and/or Testing": 1.8, "Department Evaluation and Review": 9.4, "Offer and Equity Review": 11.6, "Pre-Employments and On-Boarding": 3.2}, {"Department": "Police Department", "Division": "Administration", "Requisition Final Approval Date": 4.6667, "Job Posting": 7.0, "Analyst Evaluation and/or Testing": 1.0, "Department Evaluation and Review": 30.3333, "Offer and Equity Review": 3.0, "Pre-Employments and On-Boarding": 4.6667}, {"Department": "Police Department", "Division": "Downtown", "Requisition Final Approval Date": 1.2857, "Job Posting": 27.5714, "Analyst Evaluation and/or Testing": 53.7143, "Department Evaluation and Review": 20.4286, "Offer and Equity Review": 3.8571, "Pre-Employments and On-Boarding": 1.7143}, {"Department": "Police Department", "Division": "Headquarters", "Requisition Final Approval Date": 2.6842, "Job Posting": 8.3158, "Analyst Evaluation and/or Testing": 16.0, "Department Evaluation and Review": 30.6316, "Offer and Equity Review": 9.9474, "Pre-Employments and On-Boarding": 5.2632}, {"Department": "Police Department", "Division": "Major Crimes", "Requisition Final Approval Date": 3.0, "Job Posting": 5.6667, "Analyst Evaluation and/or Testing": 1.3333, "Department Evaluation and Review": 33.5556, "Offer and Equity Review": 19.4444, "Pre-Employments and On-Boarding": 8.7778}, {"Department": "Police Department", "Division": "Northwest", "Requisition Final Approval Date": 0.0, "Job Posting": 23.5, "Analyst Evaluation and/or Testing": 178.0, "Department Evaluation and Review": 0.0, "Offer and Equity Review": 1.5, "Pre-Employments and On-Boarding": 0.0}, {"Department": "Police Department", "Division": "Southwest", "Requisition Final Approval Date": 0.0, "Job Posting": 23.5, "Analyst Evaluation and/or Testing": 192.0, "Department Evaluation and Review": 0.5, "Offer and Equity Review": 2.0, "Pre-Employments and On-Boarding": 0.0}, {"Department": "Police Department", "Division": "Special Investigations", "Requisition Final Approval Date": 2.0, "Job Posting": 7.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 71.0, "Offer and Equity Review": 20.0, "Pre-Employments and On-Boarding": 2.0}, {"Department": "Police Department", "Division": "Special Operations", "Requisition Final Approval Date": 25.0, "Job Posting": 10.0, "Analyst Evaluation and/or Testing": 50.6667, "Department Evaluation and Review": 42.6667, "Offer and Equity Review": 15.1667, "Pre-Employments and On-Boarding": 2.8333}, {"Department": "Police Department", "Division": "Training", "Requisition Final Approval Date": 0.0, "Job Posting": 34.6667, "Analyst Evaluation and/or Testing": 192.0, "Department Evaluation and Review": 24.3333, "Offer and Equity Review": 0.6667, "Pre-Employments and On-Boarding": 11.0}, {"Department": "Public Works Department", "Division": "Building Services", "Requisition Final Approval Date": 66.5, "Job Posting": 28.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 105.0, "Offer and Equity Review": 9.75, "Pre-Employments and On-Boarding": 11.75}, {"Department": "Public Works Department", "Division": "Civil Engineering", "Requisition Final Approval Date": 3.0, "Job Posting": 10.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 19.5, "Offer and Equity Review": 3.5, "Pre-Employments and On-Boarding": 12.0}, {"Department": "Public Works Department", "Division": "Control Devices", "Requisition Final Approval Date": 33.5, "Job Posting": 31.5, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 84.0, "Offer and Equity Review": 4.5, "Pre-Employments and On-Boarding": 4.5}, {"Department": "Public Works Department", "Division": "PW-Administration", "Requisition Final Approval Date": 4.0, "Job Posting": 7.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 54.0, "Offer and Equity Review": 17.0, "Pre-Employments and On-Boarding": 3.0}, {"Department": "Public Works Department", "Division": "PW-Ops Administration", "Requisition Final Approval Date": 1.0, "Job Posting": 12.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 127.0, "Offer and Equity Review": 4.0, "Pre-Employments and On-Boarding": 3.0}, {"Department": "Public Works Department", "Division": "Parking Enforcement", "Requisition Final Approval Date": 3.6667, "Job Posting": 5.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 22.5, "Offer and Equity Review": 6.6667, "Pre-Employments and On-Boarding": 7.5}, {"Department": "Public Works Department", "Division": "Resource Control & Scheduling", "Requisition Final Approval Date": 0.8, "Job Posting": 7.2, "Analyst Evaluation and/or Testing": 17.4, "Department Evaluation and Review": 25.6, "Offer and Equity Review": 6.4, "Pre-Employments and On-Boarding": 2.4}, {"Department": "Public Works Department", "Division": "Signals", "Requisition Final Approval Date": 0.0, "Job Posting": 7.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 4.0, "Offer and Equity Review": 22.0, "Pre-Employments and On-Boarding": 8.0}, {"Department": "Public Works Department", "Division": "Solid Waste Collection", "Requisition Final Approval Date": 4.119, "Job Posting": 6.5238, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 10.8333, "Offer and Equity Review": 4.8571, "Pre-Employments and On-Boarding": 5.4048}, {"Department": "Public Works Department", "Division": "Storm Drain Main.", "Requisition Final Approval Date": 0.3636, "Job Posting": 7.3636, "Analyst Evaluation and/or Testing": 48.0909, "Department Evaluation and Review": 15.1818, "Offer and Equity Review": 8.0909, "Pre-Employments and On-Boarding": 6.5455}, {"Department": "Public Works Department", "Division": "Street & Drain. Maint.", "Requisition Final Approval Date": 14.8333, "Job Posting": 8.25, "Analyst Evaluation and/or Testing": 19.9583, "Department Evaluation and Review": 42.375, "Offer and Equity Review": 9.5833, "Pre-Employments and On-Boarding": 6.8333}, {"Department": "Public Works Department", "Division": "Traffic Engineering", "Requisition Final Approval Date": 3.0, "Job Posting": 9.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 27.0, "Offer and Equity Review": 0.0, "Pre-Employments and On-Boarding": 10.0}, {"Department": "Unknown Department", "Division": "Unknown Division", "Requisition Final Approval Date": NaN, "Job Posting": NaN, "Analyst Evaluation and/or Testing": NaN, "Department Evaluation and Review": NaN, "Offer and Equity Review": NaN, "Pre-Employments and On-Boarding": NaN}, {"Department": "Zoo - Intern", "Division": "Unknown Division", "Requisition Final Approval Date": 0.6667, "Job Posting": 36.3333, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 28.1667, "Offer and Equity Review": 0.0, "Pre-Employments and On-Boarding": 46.5}];
+var stages = ["Requisition Final Approval Date", "Job Posting", "Analyst Evaluation and/or Testing", "Department Evaluation and Review", "Offer and Equity Review", "Pre-Employments and On-Boarding"];
+var stageMeans = [6.5029, 23.0827, 10.9825, 41.0, 4.2561, 9.9057];
+var stageMeansDept = [{"Department": "City of Little Rock Zoo", "Requisition Final Approval Date": 12.1304, "Job Posting": 17.5, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 41.8261, "Offer and Equity Review": 1.6304, "Pre-Employments and On-Boarding": 5.7391}, {"Department": "Community Programs", "Requisition Final Approval Date": 4.03, "Job Posting": 35.0637, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 64.0449, "Offer and Equity Review": 0.1536, "Pre-Employments and On-Boarding": 16.4195}, {"Department": "District Crt-1st Div Criminal", "Requisition Final Approval Date": 1.6, "Job Posting": 8.2, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 21.0, "Offer and Equity Review": 11.0, "Pre-Employments and On-Boarding": 5.6}, {"Department": "District Crt-2nd Div Traffic", "Requisition Final Approval Date": 2.6667, "Job Posting": 7.3333, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 36.3333, "Offer and Equity Review": 14.6667, "Pre-Employments and On-Boarding": 6.0}, {"Department": "District Crt-3rd Div Environmental", "Requisition Final Approval Date": 33.0, "Job Posting": 1.0, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 35.0, "Offer and Equity Review": 10.0, "Pre-Employments and On-Boarding": 5.0}, {"Department": "Emergency Communications Ctr", "Requisition Final Approval Date": 2.6, "Job Posting": 13.2, "Analyst Evaluation and/or Testing": 2.4, "Department Evaluation and Review": 13.5333, "Offer and Equity Review": 10.4, "Pre-Employments and On-Boarding": 16.6667}, {"Department": "FIRE 40 HR", "Requisition Final Approval Date": 0.1071, "Job Posting": 21.5357, "Analyst Evaluation and/or Testing": 84.75, "Department Evaluation and Review": 9.25, "Offer and Equity Review": 18.4643, "Pre-Employments and On-Boarding": 12.9286}, {"Department": "FIRE 56 HR", "Requisition Final Approval Date": 0.0, "Job Posting": 22.3636, "Analyst Evaluation and/or Testing": 128.1364, "Department Evaluation and Review": 0.0, "Offer and Equity Review": 1.1818, "Pre-Employments and On-Boarding": 0.5455}, {"Department": "Finance Department", "Requisition Final Approval Date": 5.2143, "Job Posting": 6.9286, "Analyst Evaluation and/or Testing": 0.0714, "Department Evaluation and Review": 35.1429, "Offer and Equity Review": 3.6429, "Pre-Employments and On-Boarding": 11.3571}, {"Department": "Fleet Department", "Requisition Final Approval Date": 16.3571, "Job Posting": 18.1429, "Analyst Evaluation and/or Testing": 0.2143, "Department Evaluation and Review": 47.6429, "Offer and Equity Review": 10.9286, "Pre-Employments and On-Boarding": 4.0}, {"Department": "Housing and Neighborhood Programs Department", "Requisition Final Approval Date": 15.6154, "Job Posting": 6.7692, "Analyst Evaluation and/or Testing": 9.7949, "Department Evaluation and Review": 41.1538, "Offer and Equity Review": 11.0769, "Pre-Employments and On-Boarding": 5.7949}, {"Department": "Human Resources Department", "Requisition Final Approval Date": 14.1818, "Job Posting": 4.6364, "Analyst Evaluation and/or Testing": 1.1818, "Department Evaluation and Review": 28.7273, "Offer and Equity Review": 2.9091, "Pre-Employments and On-Boarding": 3.5455}, {"Department": "Information Technology Department", "Requisition Final Approval Date": 5.7273, "Job Posting": 6.8182, "Analyst Evaluation and/or Testing": 0.4545, "Department Evaluation and Review": 31.3636, "Offer and Equity Review": 11.7273, "Pre-Employments and On-Boarding": 6.5455}, {"Department": "Little Rock Convention & Visitors Bureau", "Requisition Final Approval Date": 4.3833, "Job Posting": 23.7, "Analyst Evaluation and/or Testing": 0.1, "Department Evaluation and Review": 42.45, "Offer and Equity Review": 0.2167, "Pre-Employments and On-Boarding": 4.25}, {"Department": "Office of City Attorney", "Requisition Final Approval Date": 4.5455, "Job Posting": 6.4545, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 14.6364, "Offer and Equity Review": 5.9091, "Pre-Employments and On-Boarding": 8.8182}, {"Department": "Office of Executive Administration", "Requisition Final Approval Date": 10.0667, "Job Posting": 3.7333, "Analyst Evaluation and/or Testing": 0.2667, "Department Evaluation and Review": 19.4, "Offer and Equity Review": 3.6667, "Pre-Employments and On-Boarding": 3.2}, {"Department": "Parks and Recreation Department", "Requisition Final Approval Date": 8.3125, "Job Posting": 34.3929, "Analyst Evaluation and/or Testing": 0.0714, "Department Evaluation and Review": 34.9732, "Offer and Equity Review": 3.7232, "Pre-Employments and On-Boarding": 6.5}, {"Department": "Planning Department", "Requisition Final Approval Date": 9.2778, "Job Posting": 7.5, "Analyst Evaluation and/or Testing": 1.0, "Department Evaluation and Review": 26.3333, "Offer and Equity Review": 8.2778, "Pre-Employments and On-Boarding": 3.6111}, {"Department": "Police Department", "Requisition Final Approval Date": 4.6364, "Job Posting": 13.4909, "Analyst Evaluation and/or Testing": 48.5636, "Department Evaluation and Review": 28.9091, "Offer and Equity Review": 9.8727, "Pre-Employments and On-Boarding": 4.7091}, {"Department": "Public Works Department", "Requisition Final Approval Date": 9.06, "Job Posting": 8.49, "Analyst Evaluation and/or Testing": 10.95, "Department Evaluation and Review": 27.41, "Offer and Equity Review": 6.93, "Pre-Employments and On-Boarding": 6.24}, {"Department": "Unknown Department", "Requisition Final Approval Date": NaN, "Job Posting": NaN, "Analyst Evaluation and/or Testing": NaN, "Department Evaluation and Review": NaN, "Offer and Equity Review": NaN, "Pre-Employments and On-Boarding": NaN}, {"Department": "Zoo - Intern", "Requisition Final Approval Date": 0.6667, "Job Posting": 36.3333, "Analyst Evaluation and/or Testing": 0.0, "Department Evaluation and Review": 28.1667, "Offer and Equity Review": 0.0, "Pre-Employments and On-Boarding": 46.5}];
+var overallStageMean = 15.955;
+var overallMean = 97.3;
+
+var ftCSHires = 66;
+var ftCSAvgDays = 161.44;
+function showPage(pg) {
+  var pages = document.getElementsByClassName('page');
+  for (var i=0; i<pages.length; i++) {
+    pages[i].className = pages[i].className.replace(' active','').replace('active','');
+  }
+  var page = document.getElementById(pg);
+  if (page) page.className += ' active';
+  var btns = ['btn1','btnHires','btn2','btn3','btnFTCS','btn4','btn5','btn6','btn7','btn8'];
+  for (var j=0; j<btns.length; j++) {
+    var btn = document.getElementById(btns[j]);
+    if (btn) btn.className = btn.className.replace(' active','').replace('active','');
+  }
+  if (pg==='p1') document.getElementById('btn1').className += ' active';
+  if (pg==='pHires') document.getElementById('btnHires').className += ' active';
+  if (pg==='p2') document.getElementById('btn2').className += ' active';
+  if (pg==='p3') document.getElementById('btn3').className += ' active';
+  if (pg==='pFTCS') document.getElementById('btnFTCS').className += ' active';
+  if (pg==='p4') document.getElementById('btn4').className += ' active';
+  if (pg==='p5') document.getElementById('btn5').className += ' active';
+  if (pg==='p6') document.getElementById('btn6').className += ' active';
+  if (pg==='p7') document.getElementById('btn7').className += ' active';
+  if (pg==='p8') document.getElementById('btn8').className += ' active';
+  if (pg==='p1' && typeof renderPage1==='function') { renderPage1(); }
+  if (pg==='pFTCS' && typeof renderPageFTCS==='function') { renderPageFTCS(); }
+}
+
+function getDivisionsForDept(dept) {
+  var out = [];
+  for (var i=0; i<rawDataDiv.length; i++) {
+    if (rawDataDiv[i].Department === dept) out.push(rawDataDiv[i]);
+  }
+  return out;
+}
+
+function getDivisionsForDeptP5(dept) {
+  var divs = [];
+  if (dept === 'ALL') {
+    for (var i=0; i<rawDataDivStage.length; i++) {
+      var d = rawDataDivStage[i].Division;
+      if (divs.indexOf(d) === -1) divs.push(d);
+    }
+  } else {
+    for (var j=0; j<rawDataDivStage.length; j++) {
+      if (rawDataDivStage[j].Department === dept) {
+        var d2 = rawDataDivStage[j].Division;
+        if (divs.indexOf(d2) === -1) divs.push(d2);
+      }
+    }
+  }
+  return divs;
+}
+
+function getDivStageRow(dept, division) {
+  for (var i=0; i<rawDataDivStage.length; i++) {
+    if (rawDataDivStage[i].Department === dept && rawDataDivStage[i].Division === division) return rawDataDivStage[i];
+  }
+  return null;
+}
+
+var rawHires = [{"Department": "City of Little Rock Zoo", "Division": "Zoo Animal Management", "Hires": 11}, {"Department": "City of Little Rock Zoo", "Division": "Zoo Education", "Hires": 20}, {"Department": "City of Little Rock Zoo", "Division": "Zoo Facilities Operation", "Hires": 2}, {"Department": "City of Little Rock Zoo", "Division": "Zoo Visitor Services", "Hires": 10}, {"Department": "City of Little Rock Zoo", "Division": "Zoo-Administration", "Hires": 3}, {"Department": "Community Programs", "Division": "Community Programs Admin", "Hires": 265}, {"Department": "Community Programs", "Division": "Community Programs Operations", "Hires": 2}, {"Department": "District Crt-1st Div Criminal", "Division": "District Crt-1st Div Criminal", "Hires": 5}, {"Department": "District Crt-2nd Div Traffic", "Division": "District Crt-2nd Div Traffic", "Hires": 3}, {"Department": "District Crt-3rd Div Environmental", "Division": "District Crt-3rd Div Environ", "Hires": 1}, {"Department": "Emergency Communications Ctr", "Division": "Operations", "Hires": 15}, {"Department": "FIRE 40 HR", "Division": "Administration-40 HR", "Hires": 1}, {"Department": "FIRE 40 HR", "Division": "Fire Training-40 HR", "Hires": 27}, {"Department": "FIRE 56 HR", "Division": "Station 1", "Hires": 19}, {"Department": "FIRE 56 HR", "Division": "Station 14", "Hires": 1}, {"Department": "FIRE 56 HR", "Division": "Station 2", "Hires": 1}, {"Department": "FIRE 56 HR", "Division": "Unknown Division", "Hires": 1}, {"Department": "Finance Department", "Division": "Accounting & Reporting", "Hires": 2}, {"Department": "Finance Department", "Division": "Accounts Payable", "Hires": 2}, {"Department": "Finance Department", "Division": "Finance Administration", "Hires": 2}, {"Department": "Finance Department", "Division": "Grants Management", "Hires": 1}, {"Department": "Finance Department", "Division": "Procurement", "Hires": 6}, {"Department": "Finance Department", "Division": "Small Business development Ofc", "Hires": 1}, {"Department": "Fleet Department", "Division": "Fit-Fire Shop", "Hires": 1}, {"Department": "Fleet Department", "Division": "Fit-Fuel", "Hires": 1}, {"Department": "Fleet Department", "Division": "Fit-Je Davis Shop", "Hires": 3}, {"Department": "Fleet Department", "Division": "Fit-Landfill Shop", "Hires": 1}, {"Department": "Fleet Department", "Division": "Fit-Tire Shop", "Hires": 1}, {"Department": "Fleet Department", "Division": "Flt-Financial Management", "Hires": 2}, {"Department": "Fleet Department", "Division": "Flt-Vehicle Storage Fa", "Hires": 5}, {"Department": "Housing and Neighborhood Programs Department", "Division": "Animal Services", "Hires": 12}, {"Department": "Housing and Neighborhood Programs Department", "Division": "CDBG - Housing Programs", "Hires": 8}, {"Department": "Housing and Neighborhood Programs Department", "Division": "Environmental Services", "Hires": 2}, {"Department": "Housing and Neighborhood Programs Department", "Division": "H&N-Administration", "Hires": 1}, {"Department": "Housing and Neighborhood Programs Department", "Division": "Neighborhood Alert Centers", "Hires": 3}, {"Department": "Housing and Neighborhood Programs Department", "Division": "Neighborhood Programs", "Hires": 13}, {"Department": "Human Resources Department", "Division": "Human Resources", "Hires": 5}, {"Department": "Human Resources Department", "Division": "Tempstaff", "Hires": 6}, {"Department": "Information Technology Department", "Division": "Computer Operations", "Hires": 6}, {"Department": "Information Technology Department", "Division": "IT-Administration", "Hires": 2}, {"Department": "Information Technology Department", "Division": "Networking", "Hires": 3}, {"Department": "Little Rock Convention & Visitors Bureau", "Division": "Finance & Administration", "Hires": 1}, {"Department": "Little Rock Convention & Visitors Bureau", "Division": "General Management", "Hires": 1}, {"Department": "Little Rock Convention & Visitors Bureau", "Division": "Marketing & Communications", "Hires": 4}, {"Department": "Little Rock Convention & Visitors Bureau", "Division": "Operations", "Hires": 39}, {"Department": "Little Rock Convention & Visitors Bureau", "Division": "Sales & Services", "Hires": 15}, {"Department": "Office of City Attorney", "Division": "Office Of City Attorney", "Hires": 11}, {"Department": "Office of Executive Administration", "Division": "311 Service Center", "Hires": 1}, {"Department": "Office of Executive Administration", "Division": "City Clerk", "Hires": 3}, {"Department": "Office of Executive Administration", "Division": "Engagement and Opportunity", "Hires": 1}, {"Department": "Office of Executive Administration", "Division": "Executive Administration", "Hires": 9}, {"Department": "Office of Executive Administration", "Division": "Unknown Division", "Hires": 1}, {"Department": "Parks and Recreation Department", "Division": "Athletics/Playgrounds", "Hires": 41}, {"Department": "Parks and Recreation Department", "Division": "Community Center Admin", "Hires": 2}, {"Department": "Parks and Recreation Department", "Division": "Cultural-Museum", "Hires": 2}, {"Department": "Parks and Recreation Department", "Division": "Design/Scheduling", "Hires": 1}, {"Department": "Parks and Recreation Department", "Division": "Dev. & Main. Admin.", "Hires": 1}, {"Department": "Parks and Recreation Department", "Division": "Dunbar Community Center", "Hires": 1}, {"Department": "Parks and Recreation Department", "Division": "First Tee Golf Maintenance", "Hires": 3}, {"Department": "Parks and Recreation Department", "Division": "First Tee Golf Pro", "Hires": 2}, {"Department": "Parks and Recreation Department", "Division": "Horticulture", "Hires": 2}, {"Department": "Parks and Recreation Department", "Division": "Jim Dailey Fitness and Aquatic Center", "Hires": 11}, {"Department": "Parks and Recreation Department", "Division": "Marathon", "Hires": 2}, {"Department": "Parks and Recreation Department", "Division": "Operations & Improv. Dev.", "Hires": 2}, {"Department": "Parks and Recreation Department", "Division": "Parks Adminstration", "Hires": 1}, {"Department": "Parks and Recreation Department", "Division": "Parks Maintenance", "Hires": 3}, {"Department": "Parks and Recreation Department", "Division": "Parks Maintenance - Mowing", "Hires": 1}, {"Department": "Parks and Recreation Department", "Division": "Rebsamen Golf Admin", "Hires": 3}, {"Department": "Parks and Recreation Department", "Division": "Rebsamen Golf Concession", "Hires": 1}, {"Department": "Parks and Recreation Department", "Division": "Rebsamen Golf Maintenance", "Hires": 1}, {"Department": "Parks and Recreation Department", "Division": "Rebsamen Tennis Center", "Hires": 3}, {"Department": "Parks and Recreation Department", "Division": "Resources Administration", "Hires": 1}, {"Department": "Parks and Recreation Department", "Division": "Senior Programs", "Hires": 1}, {"Department": "Parks and Recreation Department", "Division": "Southwest Community Center", "Hires": 18}, {"Department": "Parks and Recreation Department", "Division": "Stephens Community Center", "Hires": 1}, {"Department": "Parks and Recreation Department", "Division": "Therapeutic", "Hires": 4}, {"Department": "Parks and Recreation Department", "Division": "Urban Forestry", "Hires": 1}, {"Department": "Parks and Recreation Department", "Division": "West Central Community Complex", "Hires": 3}, {"Department": "Planning Department", "Division": "Building Codes", "Hires": 7}, {"Department": "Planning Department", "Division": "Engineering", "Hires": 1}, {"Department": "Planning Department", "Division": "PL-Administration", "Hires": 3}, {"Department": "Planning Department", "Division": "Planning", "Hires": 2}, {"Department": "Planning Department", "Division": "Zoning & Subdivision", "Hires": 5}, {"Department": "Police Department", "Division": "Administration", "Hires": 3}, {"Department": "Police Department", "Division": "Downtown", "Hires": 7}, {"Department": "Police Department", "Division": "Headquarters", "Hires": 19}, {"Department": "Police Department", "Division": "Major Crimes", "Hires": 9}, {"Department": "Police Department", "Division": "Northwest", "Hires": 4}, {"Department": "Police Department", "Division": "Southwest", "Hires": 2}, {"Department": "Police Department", "Division": "Special Investigations", "Hires": 2}, {"Department": "Police Department", "Division": "Special Operations", "Hires": 6}, {"Department": "Police Department", "Division": "Training", "Hires": 3}, {"Department": "Public Works Department", "Division": "Building Services", "Hires": 4}, {"Department": "Public Works Department", "Division": "Civil Engineering", "Hires": 2}, {"Department": "Public Works Department", "Division": "Control Devices", "Hires": 2}, {"Department": "Public Works Department", "Division": "PW-Administration", "Hires": 1}, {"Department": "Public Works Department", "Division": "PW-Ops Administration", "Hires": 1}, {"Department": "Public Works Department", "Division": "Parking Enforcement", "Hires": 6}, {"Department": "Public Works Department", "Division": "Resource Control & Scheduling", "Hires": 5}, {"Department": "Public Works Department", "Division": "Signals", "Hires": 1}, {"Department": "Public Works Department", "Division": "Solid Waste Collection", "Hires": 42}, {"Department": "Public Works Department", "Division": "Storm Drain Main.", "Hires": 11}, {"Department": "Public Works Department", "Division": "Street & Drain. Maint.", "Hires": 24}, {"Department": "Public Works Department", "Division": "Traffic Engineering", "Hires": 1}, {"Department": "Unknown Department", "Division": "Unknown Division", "Hires": 3}, {"Department": "Zoo - Intern", "Division": "Unknown Division", "Hires": 12}];
+
+
+
+function prettyDivisionName(dept, div, hires) {
+  // Normalize missing / NaN-like values
+  var isMissing = (div === null || div === undefined || (typeof div === 'number' && isNaN(div)));
+
+  // Special rules by department/division
+  if (dept === 'Zoo - Intern') {
+    return 'Unknown Division';
+  }
+
+  if (dept === 'Office of Executive Administration' && isMissing) {
+    return 'Unknown Division';
+  }
+
+  if (dept === 'Human Resources Department') {
+    // Full-time staff (5 hires)
+    if (div === 'Human Resources' && hires === 5) {
+      return 'FT Staff';
+    }
+    // Temporary / part-time staff
+    if (div === 'Tempstaff') {
+      return 'TPT Staff';
+    }
+  }
+
+  if (isMissing) {
+    return 'Unknown Division';
+  }
+
+  return div;
+}
+
+function initHiresFilters() {
+  var deptSel = document.getElementById('deptHires');
+  var divSel = document.getElementById('divHires');
+  if (!deptSel || !divSel || typeof rawHires === 'undefined') return;
+
+  // Build department list
+  var deptSet = {};
+  for (var i = 0; i < rawHires.length; i++) {
+    deptSet[rawHires[i].Department] = true;
+  }
+  var depts = Object.keys(deptSet).sort();
+  deptSel.innerHTML = '';
+  var optAll = document.createElement('option');
+  optAll.value = 'ALL';
+  optAll.textContent = 'All Departments';
+  deptSel.appendChild(optAll);
+  for (var d = 0; d < depts.length; d++) {
+    var opt = document.createElement('option');
+    opt.value = depts[d];
+    opt.textContent = depts[d];
+    deptSel.appendChild(opt);
+  }
+
+  function updateDivisionsHires() {
+    var dept = deptSel.value;
+    divSel.innerHTML = '';
+    if (dept === 'ALL') {
+      var optNA = document.createElement('option');
+      optNA.value = 'ALL';
+      optNA.textContent = 'All Divisions';
+      divSel.appendChild(optNA);
+    } else {
+      var divSet = {};
+      for (var i = 0; i < rawHires.length; i++) {
+        var row = rawHires[i];
+        if (row.Department !== dept) continue;
+        var div = prettyDivisionName(row.Department, row.Division, row.Hires);
+        divSet[div] = true;
+      }
+      var divs = Object.keys(divSet).sort();
+      var optAllDiv = document.createElement('option');
+      optAllDiv.value = 'ALL';
+      optAllDiv.textContent = 'All Divisions';
+      divSel.appendChild(optAllDiv);
+      for (var j = 0; j < divs.length; j++) {
+        var o = document.createElement('option');
+        o.value = divs[j];
+        o.textContent = divs[j];
+        divSel.appendChild(o);
+      }
+    }
+  }
+
+  deptSel.onchange = function() {
+    updateDivisionsHires();
+    renderHiresChart();
+  };
+  divSel.onchange = renderHiresChart;
+
+  updateDivisionsHires();
+  renderHiresChart();
+}
+
+function renderHiresChart() {
+  var deptSel = document.getElementById('deptHires');
+  var divSel = document.getElementById('divHires');
+  var err = document.getElementById('errorHires');
+  if (!deptSel || !divSel || typeof rawHires === 'undefined') return;
+
+  var dept = deptSel.value || 'ALL';
+  var div = divSel.value || 'ALL';
+
+  var x = [];
+  var y = [];
+  var txt = [];
+
+  if (dept === 'ALL') {
+    // Show hires per department
+    var deptCounts = {};
+    for (var i = 0; i < rawHires.length; i++) {
+      var row = rawHires[i];
+      if (!deptCounts[row.Department]) deptCounts[row.Department] = 0;
+      deptCounts[row.Department] += row.Hires;
+    }
+    var depts = Object.keys(deptCounts).sort();
+    for (var j = 0; j < depts.length; j++) {
+      var d = depts[j];
+      x.push(d);
+      y.push(deptCounts[d]);
+      txt.push(deptCounts[d] + ' hires');
+    }
+  } else {
+    // Single department selected
+    var filtered = [];
+    for (var i = 0; i < rawHires.length; i++) {
+      var row = rawHires[i];
+      if (row.Department !== dept) continue;
+      var divName = prettyDivisionName(row.Department, row.Division, row.Hires);
+      if (div !== 'ALL' && divName !== div) continue;
+      filtered.push({ Division: divName, Hires: row.Hires });
+    }
+    // Aggregate by division
+    var divCounts = {};
+    for (var k = 0; k < filtered.length; k++) {
+      var f = filtered[k];
+      if (!divCounts[f.Division]) divCounts[f.Division] = 0;
+      divCounts[f.Division] += f.Hires;
+    }
+    var divs = Object.keys(divCounts).sort();
+    for (var m = 0; m < divs.length; m++) {
+      var dv = divs[m];
+      x.push(dv);
+      y.push(divCounts[dv]);
+      txt.push(divCounts[dv] + ' hires');
+    }
+  }
+
+  if (x.length === 0) {
+    if (err) {
+      err.textContent = 'No hires found for the selected filters.';
+      err.style.display = 'block';
+    }
+    Plotly.purge('chartHires');
+    return;
+  } else if (err) {
+    err.textContent = '';
+    err.style.display = 'none';
+  }
+
+  var title;
+  if (dept === 'ALL') {
+    title = 'Total Hires by Department (All Departments)';
+  } else if (div === 'ALL') {
+    title = 'Total Hires by Division – ' + dept;
+  } else {
+    title = 'Total Hires – ' + dept + ' / ' + div;
+  }
+
+  Plotly.newPlot('chartHires', [{
+    x: x,
+    y: y,
+    type: 'bar',
+    text: txt,
+    textposition: 'outside',
+    cliponaxis: false,
+    hovertemplate: '%{y:.0f} hires<extra></extra>'
+  }], {
+    title: title,
+    margin: { b: 150, t: 70 },
+    xaxis: { automargin: true, title: dept === 'ALL' ? 'Department' : 'Division' },
+    yaxis: { title: 'Number of Hires' }
+  });
+}
+
+
+// PAGE 2
+
+function renderPage1() {
+  // Mean TTH by Department
+  var benchmark = 65;
+  var x = [];
+  var y = [];
+  if (typeof rawDataDept === 'undefined' || !rawDataDept) return;
+
+  // sort descending by Mean_TTH for readability
+  var rows = rawDataDept.slice().sort(function(a,b){ return (b.Mean_TTH || 0) - (a.Mean_TTH || 0); });
+
+  for (var i=0; i<rows.length; i++) {
+    x.push(rows[i].Department);
+    y.push(rows[i].Mean_TTH);
+  }
+
+  var yBelow = y.map(function(v){ return Math.min(v, benchmark); });
+  var yAbove = y.map(function(v){ return Math.max(0, v - benchmark); });
+
+  var traceBelow = {
+    x: x,
+    y: yBelow,
+    type: 'bar',
+    name: '≤ ' + benchmark + ' days',
+    marker: { color: 'green' },
+    hovertemplate: '%{x}<br>%{y:.1f} days<extra></extra>'
+  };
+  var traceAbove = {
+    x: x,
+    y: yAbove,
+    type: 'bar',
+    name: '> ' + benchmark + ' days',
+    marker: { color: 'red' },
+    hovertemplate: '%{x}<br>%{y:.1f} days above ' + benchmark + '<extra></extra>'
+  };
+
+  Plotly.newPlot('chart1', [traceBelow, traceAbove], {
+    title: 'Mean Time to Hire by Department',
+    barmode: 'stack',
+    margin: { b: 160, t: 70 },
+    xaxis: { automargin: true, title: 'Department' },
+    yaxis: { title: 'Average Total Time to Hire (Days)' },
+    shapes: [{
+      type: 'line',
+      x0: -0.5, x1: x.length - 0.5,
+      y0: benchmark, y1: benchmark,
+      line: { color: 'black', width: 2, dash: 'dash' }
+    }]
+  });
+}
+
+function renderPage2() {
+  var sel = document.getElementById('dept2');
+  var dept = sel ? sel.value : 'ALL';
+  var x = stages.slice();
+  var y = [], txt = [], colors = [];
+  if (dept === 'ALL') {
+    for (var i=0; i<stageMeans.length; i++) {
+      var v = stageMeans[i];
+      y.push(v);
+      txt.push(v.toFixed(1));
+      colors.push(v > overallStageMean ? 'red' : 'green');
+    }
+  } else {
+    var row = null;
+    for (var j=0; j<stageMeansDept.length; j++) {
+      if (stageMeansDept[j].Department === dept) { row = stageMeansDept[j]; break; }
+    }
+    if (row) {
+      for (var k=0; k<stages.length; k++) {
+        var st = stages[k];
+        var v2 = row[st];
+        y.push(v2);
+        txt.push(v2.toFixed(1));
+        colors.push(v2 > overallStageMean ? 'red' : 'green');
+      }
+    }
+  }
+  Plotly.newPlot('chart2', [{
+    x:x, y:y, type:'bar',
+    text:txt, textposition:'outside', cliponaxis:false,
+    hovertemplate:'%{y:.1f} days<extra></extra>',
+    marker:{color:colors}
+  }], {
+    title:'Average Days in Each Stage',
+    margin:{b:150, t:70},
+    xaxis:{automargin:true, title:'Workflow Stage'},
+    yaxis:{title:'Average Days'},
+    shapes:[{
+      type:'line',
+      x0:-0.5, x1:x.length-0.5,
+      y0:overallStageMean, y1:overallStageMean,
+      line:{color:'black', width:2, dash:'dash'}
+    }]
+  });
+}
+
+
+
+// PAGE 5 (NEW)
+function renderPageFTCS() {
+  var totalEl = document.getElementById('ftcsTotal');
+  var avgEl = document.getElementById('ftcsAvg');
+  if (totalEl) totalEl.textContent = String(ftCSHires);
+  if (avgEl) avgEl.textContent = (typeof ftCSAvgDays === 'number' ? ftCSAvgDays.toFixed(2) : String(ftCSAvgDays));
+}
+
+// PAGE 3
+function renderPage3() {
+  // Combined bar chart with color key
+  var allEmployeesMean = overallMean; // All Employees average days to hire
+
+  // 'All Employees, less LRCVB, Summer Youth, and A2' mean value
+  var filteredEmployeesMean = 73.4;
+
+  // Difference between the two groups
+  var diff = allEmployeesMean - filteredEmployeesMean;
+  var subtitle;
+  if (diff > 0) {
+    subtitle = 'Filtered group hires ' + diff.toFixed(1) + ' days faster than all employees.';
+  } else if (diff < 0) {
+    subtitle = 'Filtered group hires ' + Math.abs(diff).toFixed(1) + ' days slower than all employees.';
+  } else {
+    subtitle = 'Filtered group hires in the same time as all employees.';
+  }
+
+  var benchmark = 65;
+
+  // Use two categories on the x-axis, one per group
+  var labels = ['All Employees', 'All Employees, less LRCVB, Summer Youth, and A2'];
+
+  var values = [allEmployeesMean, filteredEmployeesMean];
+  var yBelow = [];
+  var yAbove = [];
+  var texts = [];
+
+  for (var i = 0; i < values.length; i++) {
+    var v = values[i];
+    var below = v > benchmark ? benchmark : v;
+    var above = v > benchmark ? (v - benchmark) : 0;
+    yBelow.push(below);
+    yAbove.push(above);
+    texts.push(v.toFixed(1) + ' days');
+  }
+
+  // Bottom segments (≤ 65 days) keep original group colors (blue, green)
+  var traceBelow = {
+    x: labels,
+    y: yBelow,
+    type: 'bar',
+    name: '≤ ' + benchmark + ' days',
+    marker: { color: ['blue', 'green'] },
+    hovertemplate: '%{y:.1f} days<extra></extra>',
+    text: ['', ''],
+    textposition: 'none',
+    cliponaxis: false
+  };
+
+  // Top segments (> 65 days) are red
+  var traceAbove = {
+    x: labels,
+    y: yAbove,
+    type: 'bar',
+    name: 'Days above ' + benchmark,
+    marker: { color: 'red' },
+    hovertemplate: '%{y:.1f} days<extra></extra>',
+    text: texts,
+    textposition: 'outside',
+    cliponaxis: false
+  };
+
+  Plotly.newPlot('chart3', [traceBelow, traceAbove], {
+    title: {
+      text: 'Average Days to Hire – Comparison<br><span style="font-size:12px;">' + subtitle + '</span>'
+    },
+    barmode: 'stack',
+    margin: { b: 80, t: 90 },
+    yaxis: { title: 'Average Days' },
+    legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.2 },
+    shapes: [{
+      type: 'line',
+      x0: -0.5,
+      x1: labels.length - 0.5,
+      y0: benchmark,
+      y1: benchmark,
+      line: { color: 'black', width: 2, dash: 'dash' }
+    }]
+  });
+
+
+  // Second bar chart: total hires
+  var totalHires = 799; // total hires in 2025
+
+  Plotly.newPlot('chart3b', [{
+    x: ['Total Hires'],
+    y: [totalHires],
+    type: 'bar',
+    text: [totalHires + ' hires'],
+    textposition: 'outside',
+    cliponaxis: false,
+    hovertemplate: '%{y:.0f} hires<extra></extra>'
+  }], {
+    title: 'Total Number of Hires, 2025',
+    margin: { b: 80, t: 70 },
+    yaxis: { title: 'Number of Hires' }
+  });
+}
+
+// PAGE 4
+function renderPage4() {
+  var sel = document.getElementById('dept4');
+  var err = document.getElementById('error4');
+  if (!sel) return;
+  var dept = sel.value;
+  var rows = getDivisionsForDept(dept);
+  if (!rows || rows.length===0) {
+    if (err) err.textContent = 'No division data for this department.';
+    return;
+  }
+  if (err) err.textContent = '';
+  var x=[], y=[], txt=[], colors=[];
+  var benchmark = 65;
+  for (var i=0; i<rows.length; i++) {
+    x.push(rows[i].Division);
+    y.push(rows[i].Mean_TTH);
+    var v = rows[i].Mean_TTH;
+    txt.push(v.toFixed(1));
+    colors.push(v>benchmark ? 'red':'green');
+  }
+  // Build stacked segments relative to the 65-day benchmark
+  var yBelow = [];
+  var yAbove = [];
+  for (var j = 0; j < y.length; j++) {
+    var vj = y[j];
+    if (vj > benchmark) {
+      yBelow.push(benchmark);
+      yAbove.push(vj - benchmark);
+    } else {
+      yBelow.push(vj);
+      yAbove.push(0);
+    }
+  }
+
+  var traceBelow = {
+    x: x,
+    y: yBelow,
+    type: 'bar',
+    name: '≤ ' + benchmark + ' days',
+    marker: { color: 'green' },
+    hovertemplate: '%{y:.1f} days<extra></extra>',
+    text: new Array(x.length).fill(''),
+    textposition: 'none',
+    cliponaxis: false
+  };
+
+  var traceAbove = {
+    x: x,
+    y: yAbove,
+    type: 'bar',
+    name: '> ' + benchmark + ' days',
+    marker: { color: 'red' },
+    hovertemplate: '%{y:.1f} days<extra></extra>',
+    text: txt,
+    textposition: 'outside',
+    cliponaxis: false
+  };
+
+  Plotly.newPlot('chart4', [traceBelow, traceAbove], {
+    title: 'Average Time to Hire by Division - ' + dept,
+    barmode: 'stack',
+    margin: { b: 150, t: 70 },
+    xaxis: { automargin: true, title: 'Division' },
+    yaxis: { title: 'Average Days' },
+    shapes: [{
+      type: 'line',
+      x0: -0.5, x1: x.length - 0.5,
+      y0: benchmark, y1: benchmark,
+      line: { color: 'black', width: 2, dash: 'dash' }
+    }]
+  });
+}
+
+
+// PAGE 5
+function populateDivisionsP5() {
+  var deptSel = document.getElementById('dept5');
+  var divSel = document.getElementById('div5');
+  if (!deptSel || !divSel) return;
+  var dept = deptSel.value;
+  var divs = getDivisionsForDeptP5(dept);
+  divSel.innerHTML = '';
+  for (var i=0; i<divs.length; i++) {
+    var opt = document.createElement('option');
+    opt.value = divs[i];
+    opt.text = divs[i];
+    divSel.appendChild(opt);
+  }
+}
+
+
+function renderPage5() {
+  var deptSel = document.getElementById('dept5');
+  var divSel = document.getElementById('div5');
+  var err = document.getElementById('error5');
+  if (!deptSel || !divSel) return;
+  var dept = deptSel.value;
+  var division = divSel.value;
+  if (!division) {
+    if (err) err.textContent = 'Please select a Division.';
+    return;
+  }
+
+  var row = null;
+  if (dept === 'ALL') {
+    // Aggregate across all departments for this division
+    var sums = {};
+    var count = 0;
+    for (var s = 0; s < stages.length; s++) {
+      sums[stages[s]] = 0;
+    }
+    for (var i = 0; i < rawDataDivStage.length; i++) {
+      if (rawDataDivStage[i].Division === division) {
+        count += 1;
+        for (var s2 = 0; s2 < stages.length; s2++) {
+          var st = stages[s2];
+          sums[st] += rawDataDivStage[i][st];
+        }
+      }
+    }
+    if (count > 0) {
+      row = {};
+      for (var s3 = 0; s3 < stages.length; s3++) {
+        var st2 = stages[s3];
+        row[st2] = sums[st2] / count;
+      }
+    }
+  } else {
+    // Specific department/division pair
+    row = getDivStageRow(dept, division);
+  }
+
+  if (!row) {
+    if (err) err.textContent = 'No data for this Department & Division combination.';
+    return;
+  }
+  if (err) err.textContent = '';
+
+  var x = [], y = [], txt = [], colors = [];
+  for (var i2 = 0; i2 < stages.length; i2++) {
+    var stg = stages[i2];
+    var v = row[stg];
+    x.push(stg);
+    y.push(v);
+    txt.push(typeof v === 'number' ? v.toFixed(1) : String(v));
+
+    // Color logic vs overall stage average for that stage
+    var globalStageAvg = stageMeans[i2]; // same order as stages
+    if (typeof v === 'number' && typeof globalStageAvg === 'number') {
+      colors.push(v <= globalStageAvg ? 'green' : 'red');
+    } else {
+      colors.push('gray');
+    }
+  }
+  var titleDept = (dept === 'ALL') ? 'All Departments' : dept;
+
+  Plotly.newPlot('chart5', [{
+    x: x,
+    y: y,
+    type: 'bar',
+    text: txt,
+    textposition: 'outside',
+    cliponaxis: false,
+    hovertemplate: '%{y:.1f} days<extra></extra>',
+    marker: { color: colors }
+  }], {
+    title: 'Average Days by Stage - ' + titleDept + ' / ' + division,
+    margin: { b: 150, t: 70 },
+    xaxis: { automargin: true, title: 'Workflow Stage' },
+    yaxis: { title: 'Average Days' }
+  });
+}
+
+// PAGE 6
+function renderPage6() {
+  var sel = document.getElementById('dept6');
+  var tbody = document.getElementById('table6Body');
+  var err = document.getElementById('error6');
+  if (!sel || !tbody) return;
+  var deptFilter = sel.value;
+  var threshold = 65;
+  tbody.innerHTML = '';
+  var any = false;
+  for (var i=0; i<rawDataDiv.length; i++) {
+    var row = rawDataDiv[i];
+    if (row.Mean_TTH <= threshold) continue;
+    if (deptFilter !== 'ALL' && row.Department !== deptFilter) continue;
+    any = true;
+    var tr = document.createElement('tr');
+    var tdDept = document.createElement('td'); tdDept.textContent = row.Department;
+    var tdDiv = document.createElement('td'); tdDiv.textContent = row.Division;
+    var tdVal = document.createElement('td'); tdVal.textContent = row.Mean_TTH.toFixed(1);
+    tr.appendChild(tdDept); tr.appendChild(tdDiv); tr.appendChild(tdVal);
+    tbody.appendChild(tr);
+  }
+  var tbl = document.getElementById('table6');
+  if (!any) {
+    if (err) {
+      var msg;
+      if (deptFilter === 'ALL') {
+        msg = 'Congratulations! All Departments have met the 2026 Performance Goal of hiring in 65 days or less on average.';
+      } else {
+        msg = 'Congratulations! The '+deptFilter+' Department has met the 2026 Performance Goal of hiring in 65 days or less on average.';
+      }
+      err.textContent = msg;
+      err.style.color = 'green';
+      err.style.backgroundColor = '#bbf7d0';
+      err.style.border = '1px solid #16a34a';
+      err.style.display = 'inline-block';
+    }
+    if (tbl) tbl.style.display = 'none';
+  } else {
+    if (err) {
+      err.textContent = '';
+      err.style.backgroundColor = '';
+      err.style.border = '';
+      err.style.display = 'none';
+    }
+    if (tbl) tbl.style.display = 'table';
+  }
+}
+
+
+
+function initFiltersForPage7() {
+  var deptSel = document.getElementById('dept7');
+  var divSel = document.getElementById('div7');
+  if (!deptSel || !divSel || typeof rawDataDiv === 'undefined') return;
+
+  // Build unique dept list
+  var deptSet = {};
+  for (var i = 0; i < rawDataDiv.length; i++) {
+    deptSet[rawDataDiv[i].Department] = true;
+  }
+  var depts = Object.keys(deptSet).sort();
+  deptSel.innerHTML = '';
+  var optAll = document.createElement('option');
+  optAll.value = 'ALL';
+  optAll.textContent = 'All Departments';
+  deptSel.appendChild(optAll);
+  for (var d = 0; d < depts.length; d++) {
+    var opt = document.createElement('option');
+    opt.value = depts[d];
+    opt.textContent = depts[d];
+    deptSel.appendChild(opt);
+  }
+
+  // Build division list based on selected dept
+  function updateDivisions7() {
+    var deptFilter = deptSel.value;
+    var divSet = {};
+    for (var j = 0; j < rawDataDiv.length; j++) {
+      var row = rawDataDiv[j];
+      if (deptFilter !== 'ALL' && row.Department !== deptFilter) continue;
+      divSet[row.Division] = true;
+    }
+    var divs = Object.keys(divSet).sort();
+    divSel.innerHTML = '';
+    var oAll = document.createElement('option');
+    oAll.value = 'ALL';
+    oAll.textContent = 'All Divisions';
+    divSel.appendChild(oAll);
+    for (var v = 0; v < divs.length; v++) {
+      var o = document.createElement('option');
+      o.value = divs[v];
+      o.textContent = divs[v];
+      divSel.appendChild(o);
+    }
+  }
+
+  deptSel.onchange = function() { updateDivisions7(); renderPage7(); };
+  divSel.onchange = renderPage7;
+  updateDivisions7();
+}
+
+function initFiltersForPage8() {
+  var deptSel = document.getElementById('dept8');
+  var divSel = document.getElementById('div8');
+  if (!deptSel || !divSel || typeof rawDataDiv === 'undefined') return;
+
+  // Build unique dept list
+  var deptSet = {};
+  for (var i = 0; i < rawDataDiv.length; i++) {
+    deptSet[rawDataDiv[i].Department] = true;
+  }
+  var depts = Object.keys(deptSet).sort();
+  deptSel.innerHTML = '';
+  var optAll = document.createElement('option');
+  optAll.value = 'ALL';
+  optAll.textContent = 'All Departments';
+  deptSel.appendChild(optAll);
+  for (var d = 0; d < depts.length; d++) {
+    var opt = document.createElement('option');
+    opt.value = depts[d];
+    opt.textContent = depts[d];
+    deptSel.appendChild(opt);
+  }
+
+  function updateDivisions8() {
+    var deptFilter = deptSel.value;
+    var divSet = {};
+    for (var j = 0; j < rawDataDiv.length; j++) {
+      var row = rawDataDiv[j];
+      if (deptFilter !== 'ALL' && row.Department !== deptFilter) continue;
+      divSet[row.Division] = true;
+    }
+    var divs = Object.keys(divSet).sort();
+    divSel.innerHTML = '';
+    var oAll = document.createElement('option');
+    oAll.value = 'ALL';
+    oAll.textContent = 'All Divisions';
+    divSel.appendChild(oAll);
+    for (var v = 0; v < divs.length; v++) {
+      var o = document.createElement('option');
+      o.value = divs[v];
+      o.textContent = divs[v];
+      divSel.appendChild(o);
+    }
+  }
+
+  deptSel.onchange = function() { updateDivisions8(); renderPage8(); };
+  divSel.onchange = renderPage8;
+  updateDivisions8();
+}
+
+function renderPage7() {
+  var tbody = document.getElementById('table7Body');
+  var err = document.getElementById('error7');
+  var tbl = document.getElementById('table7');
+  var deptSel = document.getElementById('dept7');
+  var divSel = document.getElementById('div7');
+  if (!tbody || !tbl) return;
+  var threshold = 65;
+  tbody.innerHTML = '';
+
+  // First, find all departments whose Mean_TTH is <= threshold
+  var qualifyingDepts = {};
+  if (typeof rawDataDept !== 'undefined') {
+    for (var i = 0; i < rawDataDept.length; i++) {
+      var drow = rawDataDept[i];
+      if (typeof drow.Mean_TTH !== 'number') continue;
+      if (drow.Mean_TTH <= threshold && drow.Mean_TTH > 0) {
+        qualifyingDepts[drow.Department] = true;
+      }
+    }
+  }
+
+  // Collect all qualifying divisions, optionally filtered by department/division
+  var qualifyingDivs = [];
+  var deptFilter = deptSel && deptSel.value ? deptSel.value : 'ALL';
+  var divFilter = divSel && divSel.value ? divSel.value : 'ALL';
+
+  if (typeof rawDataDiv !== 'undefined') {
+    for (var j = 0; j < rawDataDiv.length; j++) {
+      var row = rawDataDiv[j];
+      if (!qualifyingDepts[row.Department]) continue;
+      if (typeof row.Mean_TTH !== 'number') continue;
+      if (row.Mean_TTH <= threshold && row.Mean_TTH > 0) {
+        if (deptFilter !== 'ALL' && row.Department !== deptFilter) continue;
+        if (divFilter !== 'ALL' && row.Division !== divFilter) continue;
+        qualifyingDivs.push(row);
+      }
+    }
+  }
+
+  qualifyingDivs.sort(function(a, b) { return a.Mean_TTH - b.Mean_TTH; });
+
+  if (qualifyingDivs.length === 0) {
+    if (err) {
+      err.textContent = 'No departments and divisions are currently averaging 65 days or less for the selected filters. Keep pushing toward the performance goal!';
+      err.style.backgroundColor = '#fee2e2';
+      err.style.color = '#b91c1c';
+      err.style.border = '1px solid #b91c1c';
+      err.style.display = 'inline-block';
+    }
+    tbl.style.display = 'none';
+  } else {
+    for (var k = 0; k < qualifyingDivs.length; k++) {
+      var r = qualifyingDivs[k];
+      var tr = document.createElement('tr');
+      var tdDept = document.createElement('td'); tdDept.textContent = r.Department;
+      var tdDiv = document.createElement('td'); tdDiv.textContent = r.Division;
+      var tdVal = document.createElement('td'); tdVal.textContent = r.Mean_TTH.toFixed(1);
+      tr.appendChild(tdDept);
+      tr.appendChild(tdDiv);
+      tr.appendChild(tdVal);
+      tbody.appendChild(tr);
+    }
+    if (err) {
+      var deptSet = {};
+      for (var n = 0; n < qualifyingDivs.length; n++) {
+        deptSet[qualifyingDivs[n].Department] = true;
+      }
+      var deptCount = 0;
+      for (var key in deptSet) {
+        if (Object.prototype.hasOwnProperty.call(deptSet, key)) {
+          deptCount++;
+        }
+      }
+      err.textContent = '✨ ' + qualifyingDivs.length + ' division' + (qualifyingDivs.length !== 1 ? 's' : '') +
+                        ' across ' + deptCount + ' department' + (deptCount !== 1 ? 's' : '') +
+                        ' are meeting the 65-day goal! ✨';
+      err.style.backgroundColor = '#bbf7d0';
+      err.style.color = '#166534';
+      err.style.border = '1px solid #16a34a';
+      err.style.display = 'inline-block';
+    }
+    tbl.style.display = 'table';
+  }
+}
+
+function renderPage8() {
+  var tbody = document.getElementById('table8Body');
+  var err = document.getElementById('error8');
+  var tbl = document.getElementById('table8');
+  var deptSel = document.getElementById('dept8');
+  var divSel = document.getElementById('div8');
+  if (!tbody || !tbl) return;
+  var threshold = 65;
+  tbody.innerHTML = '';
+
+  var rows = [];
+  var deptFilter = deptSel && deptSel.value ? deptSel.value : 'ALL';
+  var divFilter = divSel && divSel.value ? divSel.value : 'ALL';
+
+  if (typeof rawDataDiv !== 'undefined') {
+    for (var i = 0; i < rawDataDiv.length; i++) {
+      var row = rawDataDiv[i];
+      if (typeof row.Mean_TTH !== 'number') continue;
+      if (row.Mean_TTH > threshold) {
+        if (deptFilter !== 'ALL' && row.Department !== deptFilter) continue;
+        if (divFilter !== 'ALL' && row.Division !== divFilter) continue;
+        rows.push(row);
+      }
+    }
+  }
+
+  rows.sort(function(a, b) { return b.Mean_TTH - a.Mean_TTH; });
+
+  if (rows.length === 0) {
+    if (err) {
+      err.textContent = 'Great news! No divisions are currently above 65 days on average for the selected filters.';
+      err.style.backgroundColor = '#bbf7d0';
+      err.style.color = '#166534';
+      err.style.border = '1px solid #16a34a';
+      err.style.display = 'inline-block';
+    }
+    tbl.style.display = 'none';
+  } else {
+    for (var j = 0; j < rows.length; j++) {
+      var r = rows[j];
+      var tr = document.createElement('tr');
+      var tdDept = document.createElement('td'); tdDept.textContent = r.Department;
+      var tdDiv = document.createElement('td'); tdDiv.textContent = r.Division;
+      var tdVal = document.createElement('td'); tdVal.textContent = r.Mean_TTH.toFixed(1);
+      tr.appendChild(tdDept);
+      tr.appendChild(tdDiv);
+      tr.appendChild(tdVal);
+      tbody.appendChild(tr);
+    }
+    if (err) {
+      err.textContent = rows.length + ' division' + (rows.length > 1 ? 's are' : ' is') + ' currently above 65 days.';
+      err.style.backgroundColor = '#fee2e2';
+      err.style.color = '#b91c1c';
+      err.style.border = '1px solid #b91c1c';
+      err.style.display = 'inline-block';
+    }
+    tbl.style.display = 'table';
+  }
+}
+
+document.addEventListener('DOMContentLoaded', function() {
+  var dept2 = document.getElementById('dept2');
+  if (dept2) { dept2.onchange = renderPage2; renderPage2(); }
+  renderPage3();
+  renderPageFTCS();
+  initHiresFilters();
+  renderPage1();
+  var dept4 = document.getElementById('dept4');
+  if (dept4) { dept4.onchange = renderPage4; renderPage4(); }
+  var dept5 = document.getElementById('dept5');
+  var div5 = document.getElementById('div5');
+  if (dept5) {
+    dept5.onchange = function() { populateDivisionsP5(); renderPage5(); };
+  }
+  if (div5) { div5.onchange = renderPage5; }
+  populateDivisionsP5();
+  renderPage5();
+  var dept6 = document.getElementById('dept6');
+  if (dept6) { dept6.onchange = renderPage6; renderPage6(); }
+  initFiltersForPage7();
+  renderPage7();
+  initFiltersForPage8();
+  renderPage8();
+});
+</script>
+
+</body>
+</html>
